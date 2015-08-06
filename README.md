@@ -15,7 +15,7 @@ Pre-compiled version can still be found on my [pastebin](http://pastebin.com/c5A
 
 **Features:**
 
-* Ninjhax only (working mset soon)
+* Ninjhax and MSET 4x support
 
 * Sig checks disabled
 
