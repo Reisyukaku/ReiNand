@@ -30,7 +30,7 @@ TARGET		:=	ReiNand
 BUILD		:=	build
 SOURCES		:=	source
 INCLUDES	:=	include
-APP_TITLE	:=	ReiNAND
+APP_TITLE	:=	ReiNand
 APP_DESCRIPTION :=	N3DS CFW
 APP_AUTHOR	:=	Reisyukaku
 
