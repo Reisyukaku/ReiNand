@@ -19,7 +19,7 @@ s32 main (void) {
     u32 payload_size = 0x10000;
     void *payload = malloc(payload_size);
 
-    FILE *fp = fopen("/reiNand.dat", "r");
+    FILE *fp = fopen("/ReiNand.dat", "r");
     if (!fp) goto exit;
     fseek(fp, 0x12000, SEEK_SET);
     fread(payload, payload_size, 1, fp);
