@@ -16,3 +16,4 @@ APP_AUTHOR = Reisyukaku
 
 PAYLOAD_PATH = //reiNand.dat
 PAYLOAD_OFFSET = 0x12000
+VOODOO = 0xF
