@@ -1,0 +1,19 @@
+#---------------------------------------------------------------------------------
+# APP_TITLE: Name of the homebrew app, also name of folder and .3DSX/.SMDH
+# APP_DESCRIPTION: Description of the homebrew app in HB launcher
+# APP_AUTHOR: Author of the homebrew app, also display in HB launcher
+#
+# PAYLOAD_PATH: Path to the ARM9 payload on the 3DS SD card (don't forget "//")
+# PAYLOAD_OFFSET: Offset of the ARM9 payload in the file given above
+#
+# If PAYLOAD_PATH is not given, payload is loaded from memory (data dir in source)
+# PAYLOAD_OFFSET is optional if offset is 0x00000000
+#---------------------------------------------------------------------------------
+
+APP_TITLE = ReiNAND
+APP_DESCRIPTION = N3DS CFW
+APP_AUTHOR = Reisyukaku
+
+PAYLOAD_PATH = //reiNand.dat
+PAYLOAD_OFFSET = 0x12000
+VOODOO = 0xF

@@ -1,3 +1,7 @@
 [submodule "mset"]
 	path = mset
 	url = https://github.com/Reisyukaku/mset
+[submodule "BrahmaLoader"]
+	path = BrahmaLoader
+	url = https://github.com/d0k3/BrahmaLoader
+	ignore = dirty

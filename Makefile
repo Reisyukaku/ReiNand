@@ -19,7 +19,8 @@ dir_mset := mset
 dir_out := out
 dir_emu := emunand
 dir_thread := thread
-dir_ninjhax := ninjhax
+dir_ninjhax := BrahmaLoader
+dir_resources := resources
 
 ASFLAGS := -mlittle-endian -mcpu=arm946e-s -march=armv5te
 CFLAGS := -MMD -MP -marm $(ASFLAGS) -fno-builtin -fshort-wchar -std=c11 -Wno-main
@@ -58,9 +59,10 @@ $(dir_out)/ReiNand.dat: $(dir_build)/main.bin $(dir_out)/rei/
     
 $(dir_out)/3ds/ReiNand:
 	@mkdir -p "$(dir_out)/3ds/ReiNand"
+	@cp -av  $(dir_resources)/* $(dir_ninjhax)/resources
 	@$(MAKE) -C $(dir_ninjhax)
-	@cp -av $(dir_ninjhax)/ReiNand.3dsx $@
-	@cp -av $(dir_ninjhax)/ReiNand.smdh $@
+	@cp -av $(dir_ninjhax)/output/ReiNand.3dsx $@
+	@cp -av $(dir_ninjhax)/output/ReiNand.smdh $@
     
 $(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin
 	@mkdir -p "$(dir_out)/rei"
