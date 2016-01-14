@@ -10,7 +10,7 @@ TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
 # This should be set externally
-name ?= reiNand.dat
+name ?= ReiNand.dat
 filepath ?=
 dir_out ?= $(CURDIR)
 
