@@ -34,7 +34,7 @@ objects_cfw = $(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \
 all: launcher emunand thread ninjhax
 
 .PHONY: launcher
-launcher: $(dir_out)/ReiNand.dat 
+launcher: $(dir_out)/reiNand.dat 
 
 .PHONY: emunand
 emunand: $(dir_out)/rei/emunand/emunand.bin
@@ -43,7 +43,7 @@ emunand: $(dir_out)/rei/emunand/emunand.bin
 thread: $(dir_out)/rei/thread/arm9.bin
 
 .PHONY: ninjhax
-ninjhax: $(dir_out)/3ds/ReiNand
+ninjhax: $(dir_out)/3ds/reiNand
 
 .PHONY: clean
 clean:
@@ -52,15 +52,15 @@ clean:
 	rm -rf $(dir_out) $(dir_build)
 
 .PHONY: $(dir_out)/ReiNand.dat
-$(dir_out)/ReiNand.dat: $(dir_build)/main.bin $(dir_out)/rei/
+$(dir_out)/reiNand.dat: $(dir_build)/main.bin $(dir_out)/rei/
 	@$(MAKE) $(FLAGS) -C $(dir_mset) launcher
 	dd if=$(dir_build)/main.bin of=$@ bs=512 seek=144
     
-$(dir_out)/3ds/ReiNand:
+$(dir_out)/3ds/reiNand:
 	@mkdir -p "$(dir_out)/3ds/ReiNand"
 	@$(MAKE) -C $(dir_ninjhax)
-	@cp -av $(dir_ninjhax)/ReiNand.3dsx $@
-	@cp -av $(dir_ninjhax)/ReiNand.smdh $@
+	@cp -av $(dir_ninjhax)/reiNand.3dsx $@
+	@cp -av $(dir_ninjhax)/reiNand.smdh $@
     
 $(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin
 	@mkdir -p "$(dir_out)/rei"
