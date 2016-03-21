@@ -24,16 +24,18 @@ dir_thread := thread
 dir_ninjhax := CakeBrah
 
 ASFLAGS := -mlittle-endian -mcpu=arm946e-s -march=armv5te
-CFLAGS := -Wall -Wextra -MMD -MP -marm $(ASFLAGS) -fno-builtin -fshort-wchar -std=c11 -Wno-main
+CFLAGS := -Wall -Wextra -MMD -MP -O2 -marm $(ASFLAGS) -fno-builtin -fshort-wchar -std=c11 -Wno-main
 FLAGS := name=$(name).dat dir_out=$(abspath $(dir_out)) ICON=$(abspath icon.png) --no-print-directory
 
 objects_cfw = $(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \
 			  $(patsubst $(dir_source)/%.c, $(dir_build)/%.o, \
 			  $(call rwildcard, $(dir_source), *.s *.c)))
 
-
 .PHONY: all
-all: launcher emunand thread ninjhax
+all: launcher a9lh emunand thread ninjhax
+
+.PHONY: a9lh
+a9lh: $(dir_out)/arm9loaderhax.bin
 
 .PHONY: launcher
 launcher: $(dir_out)/$(name).dat 
@@ -42,7 +44,7 @@ launcher: $(dir_out)/$(name).dat
 emunand: $(dir_out)/rei/emunand/emunand.bin
 
 .PHONY: thread
-thread: $(dir_out)/rei/thread/arm9.bin
+thread: $(dir_out)/rei/thread/
 
 .PHONY: ninjhax
 ninjhax: $(dir_out)/3ds/$(name)
@@ -52,6 +54,11 @@ clean:
 	@$(MAKE) $(FLAGS) -C $(dir_mset) clean
 	@$(MAKE) $(FLAGS) -C $(dir_ninjhax) clean
 	rm -rf $(dir_out) $(dir_build)
+
+.PHONY: $(dir_out)/arm9loaderhax.bin
+$(dir_out)/arm9loaderhax.bin: $(dir_build)/main.bin
+	@mkdir -p "$(dir_out)"
+	@cp -av $< $@
 
 .PHONY: $(dir_out)/$(name).dat
 $(dir_out)/$(name).dat: $(dir_build)/main.bin $(dir_out)/rei/
@@ -68,10 +75,11 @@ $(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin $(dir_data)/RAM
 	@mkdir -p "$(dir_out)/rei"
 	@cp -av $(dir_data)/* $@
     
-$(dir_out)/rei/thread/arm9.bin: $(dir_thread)
+$(dir_out)/rei/thread/: $(dir_thread)
 	@$(MAKE) $(FLAGS) -C $(dir_thread)
 	@mkdir -p "$(dir_out)/rei/thread"
 	@mv $(dir_thread)/arm9.bin $(dir_out)/rei/thread
+	@mv $(dir_thread)/arm11.bin $(dir_out)/rei/thread
     
 $(dir_out)/rei/emunand/emunand.bin: $(dir_emu)/emuCode.s
 	@armips $<

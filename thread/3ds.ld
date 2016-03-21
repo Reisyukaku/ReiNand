@@ -6,7 +6,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-  . = 0x08006070;
+  . = 0x0801A7E0;
   start_addr = .;
   .text.start : { *(.text.start) }
   .text       : { *(.text) *(.text*) }

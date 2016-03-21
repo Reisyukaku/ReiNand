@@ -15,7 +15,7 @@ int main(){
     loadSplash();
     loadFirm();
     loadEmu();
-    patchFirm();
+    //patchFirm();
     launchFirm();
     return 0;
 }

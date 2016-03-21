@@ -19,6 +19,12 @@ void getEmunandSect(u32 *off, u32 *head){
             *head = nandSize;
         }
     }
+    else if (sdmmc_sdcard_readsectors(1, 1, temp) == 0){
+        if (*(u32*)(temp + 0x100) == NCSD_MAGIC) {
+            *off = 1;
+            *head = 1;
+        }
+    }
 }
 
 void getSDMMC(void *pos, u32 *off, u32 size){

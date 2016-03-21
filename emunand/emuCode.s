@@ -2,8 +2,8 @@
 
 sdmmc equ 0x434D4453	;dummy
 
-.create "emunand.bin", 0x0801A5C0
-.org 0x0801A5C0
+.create "emunand.bin", 0x0801A4C0
+.org 0x0801A4C0
 .arm
 nand_sd:
     ; Original code that still needs to be executed.
