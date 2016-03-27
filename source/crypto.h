@@ -129,7 +129,7 @@ void sha(void* res, const void* src, u32 size, u32 mode);
 void rsa_setkey(u32 keyslot, const void* mod, const void* exp, u32 mode);
 void rsa_use_keyslot(u32 keyslot);
 int rsa_verify(const void* data, u32 size, const void* sig, u32 mode);
-void xor(u8 *dest, u8 *data1, u8 *data2, u32 size);
+void xor(void *dest, void *data1, void *data2, u32 size);
 
 //NAND/FIRM stuff
 extern const u8 memeKey[0x10];

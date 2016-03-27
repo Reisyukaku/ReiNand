@@ -10,15 +10,6 @@
 #include "lib.h"
 #include "FS.h"
 
-//ram stuff
-#define VRAM (unsigned char*)0x18000000
-#define FCRAM (unsigned char*)0x20000000
-#define FCRAM_EXT (unsigned char*)0x28000000
-
-//file stuff
-#define READ 0
-#define WRITE 1
-
 unsigned char handle[32];
 
 void fileReadWrite(void *buf, void *path, int size, char rw){

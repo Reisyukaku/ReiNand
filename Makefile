@@ -32,7 +32,7 @@ objects_cfw = $(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \
 			  $(call rwildcard, $(dir_source), *.s *.c)))
 
 .PHONY: all
-all: launcher emunand thread ninjhax
+all: launcher a9lh emunand thread ninjhax
 
 .PHONY: a9lh
 a9lh: $(dir_out)/arm9loaderhax.bin

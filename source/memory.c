@@ -10,23 +10,23 @@ void memcpy32(u32 *dest, u32 *src, u32 size){
 }
 
 void memcpy(void *dest, const void *src, u32 size){
-    char *destc = (char *)dest;
-    const char *srcc = (const char *)src;
+    u8 *destc = (u8 *)dest;
+    const u8 *srcc = (const u8 *)src;
     u32 i; for (i = 0; i < size; i++) {
         destc[i] = srcc[i];
     }
 }
 
 void memset(void *dest, int filler, u32 size){
-    char *destc = (char *)dest;
+    u8 *destc = (u8 *)dest;
     u32 i; for (i = 0; i < size; i++) {
         destc[i] = filler;
     }
 }
 
 int memcmp(const void *buf1, const void *buf2, u32 size){
-    const char *buf1c = (const char *)buf1;
-    const char *buf2c = (const char *)buf2;
+    const u8 *buf1c = (const u8 *)buf1;
+    const u8 *buf2c = (const u8 *)buf2;
     u32 i; for (i = 0; i < size; i++) {
         int cmp = buf1c[i] - buf2c[i];
         if (cmp) return cmp;

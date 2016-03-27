@@ -6,8 +6,9 @@
 
 You'll need armips added to your Path. [HERE](https://www.dropbox.com/s/ceuv2qeqp38lpah/armips.exe?dl=0) is a pre-compiled version.
 
-    make - Compiles for use with CakeHax/CakeBrah entry
-    make a9lh - Compiles for use with arm9loaderhax
+    make - Compiles All. (launcher and a9lh)
+    make launcher - Compiles CakeHax/CakeBrah payload
+    make a9lh - Compiles arm9loaderhax payload
 
 Copy everything in 'out' folder to SD root and run!
 
