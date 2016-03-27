@@ -5,14 +5,7 @@
 */
 
 #include "patches.h"
-
-#define FIRM 0x24000000
-
-#define KERNEL9 (FIRM + 0x68400)
-#define PROC9 (FIRM + 0x7F100)
-
-#define K9_ADDR 0x08006000
-#define P9_ADDR 0x08028000
+#include "memory.h"
 
 /**************************************************
 *                   Patches
@@ -31,15 +24,14 @@ u8 nandRedir[0x08] = {0x00, 0x4C, 0xA0, 0x47, 0xC0, 0xA5, 0x01, 0x08};    //Bran
 /*
 *   Sig checks
 */
-u8 sigPat1[2] = {0x00, 0x20};
-u8 sigPat2[4] = {0x00, 0x20, 0x70, 0x47};
+u8 sigPatch1[2] = {0x00, 0x20};
+u8 sigPatch2[4] = {0x00, 0x20, 0x70, 0x47};
 
 /*
 *   Arm9 thread
 */
-u8 th1[4] = {0x2C, 0xF0, 0x9F, 0xE5};   //ldr pc, =0x08006070
-u8 th2[4] = {0x70, 0x60, 0x00, 0x08};   //0x08006070
-
+u8 threadHook1[4] = {0x2C, 0xF0, 0x9F, 0xE5};   //ldr pc, =0x08006070
+u8 threadHook2[4] = {0x70, 0x60, 0x00, 0x08};   //0x08006070
 
 
 /**************************************************
@@ -47,20 +39,23 @@ u8 th2[4] = {0x70, 0x60, 0x00, 0x08};   //0x08006070
 **************************************************/
 
 //Where thread code is stored in firm
-u32 threadCode(void){
-    return KERNEL9 + (0x08006070 - K9_ADDR);
+void getThreadCode(u32 *off){
+    *off = 0x24068470;
 }
 
 //Offsets to redirect to thread code
-u32 threadHook(u8 val){
-    return val == 1 ? 
-            PROC9 + (0x08085198 - P9_ADDR): 
-            PROC9 + (0x080851CC - P9_ADDR);
+void getThreadHooks(void *pos, u32 size, u32 *off, u32 *off2){
+    const u8 pattern[] = {0x3A, 0x2C, 0x00, 0x9F, 0xE5};
+
+    *off = memsearch(pos, (void*)pattern, size, 5) + 1;
+    *off2 = *off + 0x34;
 }
 
 //Offsets to redirect to thread code
-u32 sigPatch(u8 val){
-    return val == 1 ?
-            PROC9 + (0x08062B08 - P9_ADDR) :
-            PROC9 + (0x0805C31C - P9_ADDR);
+void getSigChecks(void *pos, u32 size, u32 *off, u32 *off2){
+    const u8 pattern[] = {0xC0, 0x1C, 0x76, 0xE7};
+    const u8 pattern2[] = {0xB5, 0x22, 0x4D, 0x0C};
+
+    *off = (u32)memsearch(pos, (void*)pattern, size, 4);
+    *off2 = (u32)memsearch(pos, (void*)pattern2, size, 4) - 1;
 }

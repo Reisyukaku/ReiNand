@@ -28,7 +28,7 @@ int unmountSD()
     return 0;
 }
 
-int fileReadOffset(u8 *dest, const char *path, u32 size, u32 offset){
+int fileReadOffset(void *dest, const char *path, u32 size, u32 offset){
     FRESULT fr;
     FIL fp;
     u32 br = 0;
@@ -54,11 +54,11 @@ error:
     return fr;
 }
 
-int fileRead(u8 *dest, const char *path, u32 size){
+int fileRead(void *dest, const char *path, u32 size){
     return fileReadOffset(dest, path, size, 0);
 }
 
-int fileWrite(const u8 *buffer, const char *path, u32 size){
+int fileWrite(const void *buffer, const char *path, u32 size){
     FRESULT fr;
     FIL fp;
     u32 br = 0;
