@@ -24,5 +24,6 @@ u8 threadHook2[4];
 void getThreadCode(u32 *off);
 void getThreadHooks(void *pos, u32 size, u32 *off, u32 *off2);
 void getSigChecks(void *pos, u32 size, u32 *off, u32 *off2);
+void getExe(void *pos, u32 size, u32 *off);
 
 #endif

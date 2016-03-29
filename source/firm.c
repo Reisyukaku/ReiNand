@@ -28,7 +28,8 @@ u32 sigPatchOffset1 = 0,
     sigPatchOffset2 = 0,
     threadOffset1 = 0,
     threadOffset2 = 0,
-    threadCodeOffset = 0;
+    threadCodeOffset = 0,
+    exeOffset = 0;
 
 //Load firm into FCRAM
 void loadFirm(void){
@@ -89,6 +90,10 @@ void patchFirm(){
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     memcpy((u8*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
     memcpy((u8*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
+    
+    //Disable firm partition update
+    getExe(firmLocation, firmSize, &exeOffset);
+    memcpy((u8*)exeOffset, "kek", 3);
     
     //Create arm9 thread
     const char thPath[] = "/rei/thread/arm9.bin";

@@ -30,8 +30,8 @@ u8 sigPatch2[4] = {0x00, 0x20, 0x70, 0x47};
 /*
 *   Arm9 thread
 */
-u8 threadHook1[4] = {0x2C, 0xF0, 0x9F, 0xE5};   //ldr pc, =0x08006070
-u8 threadHook2[4] = {0x70, 0x60, 0x00, 0x08};   //0x08006070
+u8 threadHook1[4] = {0x2C, 0xF0, 0x9F, 0xE5};   //ldr pc, =threadHook2
+u8 threadHook2[4] = {0xC0, 0xA6, 0x01, 0x08};   //threadHook2: .word 0x0801A7E0
 
 
 /**************************************************
@@ -40,7 +40,7 @@ u8 threadHook2[4] = {0x70, 0x60, 0x00, 0x08};   //0x08006070
 
 //Where thread code is stored in firm
 void getThreadCode(u32 *off){
-    *off = 0x24068470;
+    *off = 0x2407CAC0;
 }
 
 //Offsets to redirect to thread code
@@ -58,4 +58,11 @@ void getSigChecks(void *pos, u32 size, u32 *off, u32 *off2){
 
     *off = (u32)memsearch(pos, (void*)pattern, size, 4);
     *off2 = (u32)memsearch(pos, (void*)pattern2, size, 4) - 1;
+}
+
+//Offset to exe: protocol
+void getExe(void *pos, u32 size, u32 *off){
+    const char *pattern = "exe:";
+
+    *off = memsearch(pos, (void*)pattern, size, 4);
 }
