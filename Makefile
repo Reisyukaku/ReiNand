@@ -79,7 +79,6 @@ $(dir_out)/rei/thread/: $(dir_thread)
 	@$(MAKE) $(FLAGS) -C $(dir_thread)
 	@mkdir -p "$(dir_out)/rei/thread"
 	@mv $(dir_thread)/arm9.bin $(dir_out)/rei/thread
-	@mv $(dir_thread)/arm11.bin $(dir_out)/rei/thread
     
 $(dir_out)/rei/emunand/emunand.bin: $(dir_emu)/emuCode.s
 	@armips $<

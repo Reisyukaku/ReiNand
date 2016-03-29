@@ -353,8 +353,8 @@ int rsa_verify(const void* data, u32 size, const void* sig, u32 mode)
 	return memcmp(dataHash, decSig + (sigSize - SHA_256_HASH_SIZE), SHA_256_HASH_SIZE) == 0;
 }
 
-void xor(u8 *dest, u8 *data1, u8 *data2, u32 size){
-    int i; for(i = 0; i < size; i++) *(dest+i) = *(data1+i) ^ *(data2+i);
+void xor(void *dest, void *data1, void *data2, u32 size){
+    u32 i; for(i = 0; i < size; i++) *((u8*)dest+i) = *((u8*)data1+i) ^ *((u8*)data2+i);
 }
 
 /****************************************************************

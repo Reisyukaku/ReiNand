@@ -12,6 +12,5 @@ all:
 	$(CC) -g arm9/_start.s arm9/FS.s -I arm9 $(SFLAGS)
 	$(CC) -nostdlib -T 3ds.ld _start.o thread.o lib.o FS.o
 	$(OBJCOPY) -O binary a.out arm9.bin
-	cp arm11/arm11.bin ./arm11.bin
 	rm -f *.o *.out
 	

@@ -7,7 +7,6 @@
 #include "draw.h"
 #include "fs.h"
 #include "memory.h"
-#include "types.h"
 
 void shutdownLCD(void){
     
