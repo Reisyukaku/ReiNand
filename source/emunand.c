@@ -13,18 +13,23 @@ static u8 *temp = (u8*)0x24300000;
 
 void getEmunandSect(u32 *off, u32 *head){
     u32 nandSize = getMMCDevice(0)->total_size;
-    if (sdmmc_sdcard_readsectors(nandSize, 1, temp) == 0) {
-        if (*(u32*)(temp + 0x100) == NCSD_MAGIC) {
-            *off = 0;
-            *head = nandSize;
-        }
-    }
-    else if (sdmmc_sdcard_readsectors(1, 1, temp) == 0){
+    if (sdmmc_sdcard_readsectors(1, 1, temp) == 0){   //Rednand
         if (*(u32*)(temp + 0x100) == NCSD_MAGIC) {
             *off = 1;
             *head = 1;
+            return;
         }
     }
+    if (sdmmc_sdcard_readsectors(nandSize, 1, temp) == 0) {   //GW Emu
+        if (*(u32*)(temp + 0x100) == NCSD_MAGIC) {
+            *off = 0;
+            *head = nandSize;
+            return;
+        }
+    }
+    //No Emunand detected
+    *off = 0;
+    *head = 0;
 }
 
 void getSDMMC(void *pos, u32 *off, u32 size){

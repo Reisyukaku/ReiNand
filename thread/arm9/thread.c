@@ -26,15 +26,6 @@ void memdump(void* filename, void* buf, unsigned int size){
 	memset(VRAM+0x1E6000, 0xFF, 0x46500);
 }
 
-void patches(void){
-    //Change version string
-    for(int i = 0; i < 0x600000; i+=4){
-        if(strcomp((void*)0x27B00000  - i, (void*)L"Ver.", 4)){
-            if(strcomp((void*)0x27B00000  - i + 0x28, (void*)"T_ver_00", 4)) strcopy((void*)0x27B00000 - i, (void*)L"\uE024Rei", 4);
-        }
-	}
-}
-
 void thread(void){
 	while(1){
         if(isPressed(BUTTON_START | BUTTON_X)){
@@ -44,7 +35,6 @@ void thread(void){
             loc = atoi(buf);
             memdump(L"sdmc:/RAMdmp.bin", (void*)loc, 0x10000);
         }
-        patches();
 	}
 	__asm("SVC 0x09");
 }

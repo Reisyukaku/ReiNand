@@ -56,8 +56,10 @@ void loadFirm(void){
 //Nand redirection
 void loadEmu(void){
     
-    //Check for force sysnand
-    if(((~*(unsigned *)0x10146000) & 0xFFF) == (1 << 3)) return;
+    //Check for Emunand
+    if(((~*(unsigned *)0x10146000) & 0xFFF) == (1 << 3)) return; //Press start to override emunand
+    getEmunandSect(&emuOffset, &emuHeader);
+    if(!(emuOffset | emuHeader)) return;
     
     //Read emunand code from SD
     const char path[] = "/rei/emunand/emunand.bin";
@@ -65,36 +67,35 @@ void loadEmu(void){
     getEmuCode(firmLocation, &emuCodeOffset, firmSize);
     fileRead(emuCodeOffset, path, size);
     
-    //Find and patch emunand related offsets
+    //Setup Emunand code
     u32 *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", size, 4);
     u32 *pos_offset = memsearch(emuCodeOffset, "NAND", size, 4);
     u32 *pos_header = memsearch(emuCodeOffset, "NCSD", size, 4);
 	getSDMMC(firmLocation, &sdmmcOffset, firmSize);
-    getEmunandSect(&emuOffset, &emuHeader);
     getEmuRW(firmLocation, firmSize, &emuRead, &emuWrite);
-    getMPU(firmLocation, firmSize, &mpuOffset);
-	*pos_sdmmc = sdmmcOffset;
-	*pos_offset = emuOffset;
-	*pos_header = emuHeader;
-	
-    //Add emunand hooks
+    *pos_sdmmc = sdmmcOffset;
+    *pos_offset = emuOffset;
+    *pos_header = emuHeader;
+    
+    //Add Emunand hooks
     memcpy((u8*)emuRead, nandRedir, sizeof(nandRedir));
     memcpy((u8*)emuWrite, nandRedir, sizeof(nandRedir));
 }
 
 //Patches
 void patchFirm(){
+    
     //Disable signature checks
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     memcpy((u8*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
     memcpy((u8*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
     
     //Create arm9 thread
-    const char path[] = "/rei/thread/arm9.bin";
-    u32 size = fileSize(path);
+    const char thPath[] = "/rei/thread/arm9.bin";
+    u32 thSize = fileSize(thPath);
     getThreadCode(&threadCodeOffset);
     getThreadHooks(firmLocation, firmSize, &threadOffset1, &threadOffset2);
-    fileRead(threadCodeOffset, path, size);
+    fileRead(threadCodeOffset, thPath, thSize);
     memcpy((u8*)threadOffset1, threadHook1, sizeof(threadHook1));
     memcpy((u8*)threadOffset2, threadHook2, sizeof(threadHook2));
 }

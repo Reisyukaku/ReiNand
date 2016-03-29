@@ -24,6 +24,10 @@ Copy everything in 'out' folder to SD root and run!
 * Emunand (with 'Rei' version string)
 
 * Compatibility with arm9loaderhax
+
+* Region free CIAs
+
+* Custom version string
  
 
 **Credits:**
@@ -33,6 +37,8 @@ Copy everything in 'out' folder to SD root and run!
  3DBREW for saving me plenty of reverse engineering time.
     
  Patois/Cakes for CakesBrah.
+ 
+ Yifanlu for custom loader module! 
  
  Normmatt for sdmmc.c and generally being helpful!
  
