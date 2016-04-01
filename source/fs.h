@@ -9,9 +9,9 @@
 
 int mountSD();
 int unmountSD();
-int fileReadOffset(void *dest, const char *path, u32 size, u32 offset);
-int fileRead(void *dest, const char *path, u32 size);
-int fileWrite(const void *buffer, const char *path, u32 size);
+int fileReadOffset(void *dest, const char *path, Size size, u32 offset);
+int fileRead(void *dest, const char *path, Size size);
+int fileWrite(const void *buffer, const char *path, Size size);
 int fileSize(const char* path);
 
 #endif

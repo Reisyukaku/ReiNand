@@ -226,131 +226,41 @@ void aes(void* dst, const void* src, u32 blockCount, void* iv, u32 mode, u32 ivM
 	}
 }
 
-void sha_wait_idle()
+static void sha_init(u32 mode)
 {
-	while(*REG_SHA_CNT & 1);
+    while(*REG_SHACNT & 1);
+    *REG_SHACNT = mode | SHA_CNT_OUTPUT_ENDIAN | SHA_NORMAL_ROUND;
 }
 
-void sha(void* res, const void* src, u32 size, u32 mode)
-{
-	sha_wait_idle();
-	*REG_SHA_CNT = mode | SHA_CNT_OUTPUT_ENDIAN | SHA_NORMAL_ROUND;
-	
-	const u32* src32	= (const u32*)src;
-	int i;
-	while(size >= 0x40)
-	{
-		sha_wait_idle();
-		for(i = 0; i < 4; ++i)
-		{
-			*REG_SHA_INFIFO = *src32++;
-			*REG_SHA_INFIFO = *src32++;
-			*REG_SHA_INFIFO = *src32++;
-			*REG_SHA_INFIFO = *src32++;
-		}
-
-		size -= 0x40;
-	}
-	
-	sha_wait_idle();
-	memcpy((void*)REG_SHA_INFIFO, src32, size);
-	
-	*REG_SHA_CNT = (*REG_SHA_CNT & ~SHA_NORMAL_ROUND) | SHA_FINAL_ROUND;
-	
-	while(*REG_SHA_CNT & SHA_FINAL_ROUND);
-	sha_wait_idle();
-	
-	u32 hashSize = SHA_256_HASH_SIZE;
-	if(mode == SHA_224_MODE)
-		hashSize = SHA_224_HASH_SIZE;
-	else if(mode == SHA_1_MODE)
-		hashSize = SHA_1_HASH_SIZE;
-
-	memcpy(res, (void*)REG_SHA_HASH, hashSize);
+static void sha_update(const void* src, u32 size)
+{  
+    const u32* src32 = (const u32*)src;
+    
+    while(size >= 0x40) {
+        while(*REG_SHACNT & 1);
+        for(u32 i = 0; i < 4; i++) {
+            *REG_SHAINFIFO = *src32++;
+            *REG_SHAINFIFO = *src32++;
+            *REG_SHAINFIFO = *src32++;
+            *REG_SHAINFIFO = *src32++;
+        }
+        size -= 0x40;
+    }
+    while(*REG_SHACNT & 1);
+    memcpy((void*)REG_SHAINFIFO, src32, size);
 }
 
-void rsa_wait_idle()
-{
-	while(*REG_RSA_CNT & 1);
+static void sha_get(void* res) {
+    *REG_SHACNT = (*REG_SHACNT & ~SHA_NORMAL_ROUND) | SHA_FINAL_ROUND;
+    while(*REG_SHACNT & SHA_FINAL_ROUND);
+    while(*REG_SHACNT & 1);
+    memcpy(res, (void*)REG_SHAHASH, (256 / 8));
 }
 
-void rsa_use_keyslot(u32 keyslot)
-{
-	*REG_RSA_CNT = (*REG_RSA_CNT & ~RSA_CNT_KEYSLOTS) | (keyslot << 4);
-}
-
-void rsa_setkey(u32 keyslot, const void* mod, const void* exp, u32 mode)
-{
-	rsa_wait_idle();
-	*REG_RSA_CNT = (*REG_RSA_CNT & ~RSA_CNT_KEYSLOTS) | (keyslot << 4) | RSA_IO_BE | RSA_IO_NORMAL;
-	
-	u32 size = mode * 4;
-	
-	volatile u32* keyslotCnt = REG_RSA_SLOT0 + (keyslot << 4);
-	keyslotCnt[0] &= ~(RSA_SLOTCNT_KEY_SET | RSA_SLOTCNT_WPROTECT);
-	keyslotCnt[1] = mode;
-	
-	memcpy((void*)REG_RSA_MOD_END - size, mod, size);
-	
-	if(exp == NULL)
-	{
-		size -= 4;
-		while(size)
-		{
-			*REG_RSA_EXPFIFO = 0;
-			size -= 4;
-		}
-		*REG_RSA_EXPFIFO = 0x01000100; // 0x00010001 byteswapped
-	}
-	else
-	{
-		const u32* exp32 = (const u32*)exp;
-		while(size)
-		{
-			*REG_RSA_EXPFIFO = *exp32++;
-			size -= 4;
-		}
-	}
-}
-
-int rsa_iskeyset(u32 keyslot)
-{
-	return *(REG_RSA_SLOT0 + (keyslot << 4)) & 1;
-}
-
-void rsa(void* dst, const void* src, u32 size)
-{
-	u32 keyslot = (*REG_RSA_CNT & RSA_CNT_KEYSLOTS) >> 4;
-	if(rsa_iskeyset(keyslot) == 0)
-		return;
-
-	rsa_wait_idle();
-	*REG_RSA_CNT |= RSA_IO_BE | RSA_IO_NORMAL;
-	
-	// Pad the message with zeroes so that it's a multiple of 8
-	// and write the message with the end aligned with the register
-	u32 padSize = ((size + 7) & ~7) - size;
-	memset((void*)REG_RSA_TXT_END - (size + padSize), 0, padSize);
-	memcpy((void*)REG_RSA_TXT_END - size, src, size);
-	
-	// Start
-	*REG_RSA_CNT |= RSA_CNT_START;
-	
-	rsa_wait_idle();
-	memcpy(dst, (void*)REG_RSA_TXT_END - size, size);
-}
-
-int rsa_verify(const void* data, u32 size, const void* sig, u32 mode)
-{
-	u8 dataHash[SHA_256_HASH_SIZE];
-	sha(dataHash, data, size, SHA_256_MODE);
-	
-	u8 decSig[0x100]; // Way too big, need to request a work area
-	
-	u32 sigSize = mode * 4;
-	rsa(decSig, sig, sigSize);
-	
-	return memcmp(dataHash, decSig + (sigSize - SHA_256_HASH_SIZE), SHA_256_HASH_SIZE) == 0;
+static void sha_quick(void* res, const void* src, u32 size, u32 mode) {
+    sha_init(mode);
+    sha_update(src, size);
+    sha_get(res);
 }
 
 void xor(void *dest, void *data1, void *data2, u32 size){
@@ -360,9 +270,22 @@ void xor(void *dest, void *data1, void *data2, u32 size){
 /****************************************************************
 *                   Nand/FIRM Crypto stuff
 ****************************************************************/
+
 const u8 memeKey[0x10] = {
     0x52, 0x65, 0x69, 0x20, 0x69, 0x73, 0x20, 0x62, 0x65, 0x73, 0x74, 0x20, 0x67, 0x69, 0x72, 0x6C
 };
+
+//Get Nand CTR key
+static void getNandCTR(u8 *buf, u32 console){
+    // calculate CTRNAND/TWL ctr from NAND CID
+    // Taken from Decrypt9
+    u8 NandCid[16];
+    u8 shasum[32];
+    
+    sdmmc_get_cid(1, (uint32_t *)NandCid);
+    sha_quick(shasum, NandCid, 16, SHA256_MODE);
+    memcpy(buf, shasum, 16);
+}
 
 //Emulates the Arm9loader process
 void arm9loader(void *armHdr){    
@@ -405,4 +328,12 @@ void arm9loader(void *armHdr){
         aes_setkey(slot, (u8*)decKey, AES_KEYX, AES_INPUT_BE | AES_INPUT_NORMAL);
         *(u8 *)((void *)((uintptr_t)armHdr+0x89814+0xF)) += 1;
     }
+}
+
+//Decrypt firmware blob
+void decryptFirm(void *firm, Size firmSize){
+    u8 firmIV[0x10] = {0};
+    aes_setkey(0x16, memeKey, AES_KEYNORMAL, AES_INPUT_BE | AES_INPUT_NORMAL);
+    aes_use_keyslot(0x16);
+    aes(firm, firm, firmSize / AES_BLOCK_SIZE, firmIV, AES_CBC_DECRYPT_MODE, AES_INPUT_BE | AES_INPUT_NORMAL);
 }

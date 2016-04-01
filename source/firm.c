@@ -12,18 +12,21 @@
 #include "crypto.h"
 #include "draw.h"
 
+//Firm vars
 const void *firmLocation = (void*)0x24000000;
 firmHeader *firm = NULL;
 firmSectionHeader *section = NULL;
+Size firmSize = 0;
+
 //Emu vars
 u32 emuOffset = 0,
     emuHeader = 0,
     emuRead = 0,
     emuWrite = 0,
-    sdmmcOffset = 0, 
-    firmSize = 0,
+    sdmmcOffset = 0,
     mpuOffset = 0,
     emuCodeOffset = 0;
+    
 //Patch vars
 u32 sigPatchOffset1 = 0,
     sigPatchOffset2 = 0,
@@ -38,12 +41,7 @@ void loadFirm(void){
 	const char firmPath[] = "/rei/firmware.bin";
 	firmSize = fileSize(firmPath);
     fileRead(firmLocation, firmPath, firmSize);
-    
-    //Decrypt firmware blob
-    u8 firmIV[0x10] = {0};
-    aes_setkey(0x16, memeKey, AES_KEYNORMAL, AES_INPUT_BE | AES_INPUT_NORMAL);
-    aes_use_keyslot(0x16);
-    aes(firmLocation, firmLocation, firmSize / AES_BLOCK_SIZE, firmIV, AES_CBC_DECRYPT_MODE, AES_INPUT_BE | AES_INPUT_NORMAL);
+    decryptFirm(firmLocation, firmSize);
     
     //Parse firmware
     firm = firmLocation;
@@ -65,15 +63,15 @@ void loadEmu(void){
     
     //Read emunand code from SD
     const char path[] = "/rei/emunand/emunand.bin";
-    u32 size = fileSize(path);
-    getEmuCode(firmLocation, &emuCodeOffset, firmSize);
-    fileRead(emuCodeOffset, path, size);
+    Size emuSize = fileSize(path);
+    getEmuCode(firmLocation, firmSize, &emuCodeOffset);
+    fileRead(emuCodeOffset, path, emuSize);
     
     //Setup Emunand code
-    u32 *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", size, 4);
-    u32 *pos_offset = memsearch(emuCodeOffset, "NAND", size, 4);
-    u32 *pos_header = memsearch(emuCodeOffset, "NCSD", size, 4);
-	getSDMMC(firmLocation, &sdmmcOffset, firmSize);
+    uPtr *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", emuSize, 4);
+    uPtr *pos_offset = memsearch(emuCodeOffset, "NAND", emuSize, 4);
+    uPtr *pos_header = memsearch(emuCodeOffset, "NCSD", emuSize, 4);
+	getSDMMC(firmLocation, firmSize, &sdmmcOffset);
     getEmuRW(firmLocation, firmSize, &emuRead, &emuWrite);
     *pos_sdmmc = sdmmcOffset;
     *pos_offset = emuOffset;
@@ -98,12 +96,12 @@ void patchFirm(){
     
     //Create arm9 thread
     const char thPath[] = "/rei/thread/arm9.bin";
-    u32 thSize = fileSize(thPath);
+    Size thSize = fileSize(thPath);
     getThreadCode(&threadCodeOffset);
     getThreadHooks(firmLocation, firmSize, &threadOffset1, &threadOffset2);
     fileRead(threadCodeOffset, thPath, thSize);
-    u32 *pos_THD1 = memsearch(threadCodeOffset, "THD1", thSize, 4);
-    u32 *pos_THD2 = memsearch(threadCodeOffset, "THD2", thSize, 4);
+    uPtr *pos_THD1 = memsearch(threadCodeOffset, "THD1", thSize, 4);
+    uPtr *pos_THD2 = memsearch(threadCodeOffset, "THD2", thSize, 4);
     *pos_THD1 = 0x080E3408;
     *pos_THD2 = 0x0808519C;
     memcpy((u8*)threadOffset1, threadHook1, sizeof(threadHook1));

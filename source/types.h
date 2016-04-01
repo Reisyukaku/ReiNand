@@ -18,6 +18,8 @@ typedef volatile uint8_t vu8;
 typedef volatile uint16_t vu16;
 typedef volatile uint32_t vu32;
 typedef volatile uint64_t vu64;
+typedef uintptr_t uPtr;
+typedef size_t Size;
 
 //FIRM Header layout
 typedef struct firmSectionHeader {
