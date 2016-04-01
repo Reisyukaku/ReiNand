@@ -15,6 +15,7 @@
 const void *firmLocation = (void*)0x24000000;
 firmHeader *firm = NULL;
 firmSectionHeader *section = NULL;
+//Emu vars
 u32 emuOffset = 0,
     emuHeader = 0,
     emuRead = 0,
@@ -47,7 +48,7 @@ void loadFirm(void){
     //Parse firmware
     firm = firmLocation;
     section = firm->section;
-    arm9loader(firmLocation + section[2].offset);
+    if(PDN_MPCORE_CFG != 1) arm9loader(firmLocation + section[2].offset);
     
     //Set MPU for emu/thread code region
     getMPU(firmLocation, firmSize, &mpuOffset);
@@ -58,7 +59,7 @@ void loadFirm(void){
 void loadEmu(void){
     
     //Check for Emunand
-    if(((~*(unsigned *)0x10146000) & 0xFFF) == (1 << 3)) return; //Press start to override emunand
+    if((HID & 0xFFF) == (1 << 3) || CFG_BOOTENV == 0x7) return; //Override emunand
     getEmunandSect(&emuOffset, &emuHeader);
     if(!(emuOffset | emuHeader)) return;
     
@@ -101,6 +102,10 @@ void patchFirm(){
     getThreadCode(&threadCodeOffset);
     getThreadHooks(firmLocation, firmSize, &threadOffset1, &threadOffset2);
     fileRead(threadCodeOffset, thPath, thSize);
+    u32 *pos_THD1 = memsearch(threadCodeOffset, "THD1", thSize, 4);
+    u32 *pos_THD2 = memsearch(threadCodeOffset, "THD2", thSize, 4);
+    *pos_THD1 = 0x080E3408;
+    *pos_THD2 = 0x0808519C;
     memcpy((u8*)threadOffset1, threadHook1, sizeof(threadHook1));
     memcpy((u8*)threadOffset2, threadHook2, sizeof(threadHook2));
 }
@@ -121,5 +126,6 @@ void launchFirm(void){
     *arm11 = (u32)firm->arm11Entry;
     
     //Final jump to arm9 binary
-    ((void (*)())0x801B01C)();
+    u32 entry = PDN_MPCORE_CFG != 1 ? 0x801B01C : firm->arm9Entry;
+    ((void (*)())entry)();
 }

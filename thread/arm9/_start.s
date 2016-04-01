@@ -11,5 +11,5 @@ _createThread:
 	svc 0x8             @ svcCreateThread
 	pop {r0-r12 , lr}
     
-	ldr r0, =0x080E3408
-	ldr pc, =0x0808519C
+	ldr r0, =0x31444854
+	ldr pc, =0x32444854
