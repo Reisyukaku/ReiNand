@@ -43,6 +43,11 @@ void loadFirm(void){
     fileRead(firmLocation, firmPath, firmSize);
     decryptFirm(firmLocation, firmSize);
     
+    //Inject custom loader
+    const char ldrPath[] = "/rei/loader.cxi";
+	u32 ldrSize = fileSize(ldrPath);
+    fileRead(firmLocation + 0x26600, ldrPath, ldrSize);
+    
     //Parse firmware
     firm = firmLocation;
     section = firm->section;

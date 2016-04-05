@@ -71,7 +71,7 @@ $(dir_out)/3ds/$(name):
 	@mv $(dir_out)/$(name).3dsx $@
 	@mv $(dir_out)/$(name).smdh $@
     
-$(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin $(dir_data)/RAM.txt
+$(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin $(dir_data)/RAM.txt $(dir_data)/loader.cxi
 	@mkdir -p "$(dir_out)/rei"
 	@cp -av $(dir_data)/* $@
     
@@ -79,7 +79,6 @@ $(dir_out)/rei/thread/: $(dir_thread)
 	@$(MAKE) $(FLAGS) -C $(dir_thread)
 	@mkdir -p "$(dir_out)/rei/thread"
 	@mv $(dir_thread)/arm9.bin $(dir_out)/rei/thread
-	@mv $(dir_thread)/arm11.bin $(dir_out)/rei/thread
     
 $(dir_out)/rei/emunand/emunand.bin: $(dir_emu)/emuCode.s
 	@armips $<

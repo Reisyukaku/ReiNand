@@ -15,19 +15,19 @@ Copy everything in 'out' folder to SD root and run!
 
 **Features:**
 
-* Ninjhax and MSET support!
-
-* Sig checks disabled
+* Ninjhax/MSET/Spider/A9LH support!
 
 * RAM dump (edit RAM.txt with a base 10 number for offset) [Start Button + X]
 
-* Emunand (with 'Rei' version string)
+* Emunand/Patched Sysnand (with 'Rei' version string)
 
-* Compatibility with arm9loaderhax
+* Region free CIAs and Carts!
 
-* Region free CIAs
+* Sig checks disabled
 
-* Custom version string
+* Silent updates disabled
+
+* EShop update check disabled
  
 
 **Credits:**
