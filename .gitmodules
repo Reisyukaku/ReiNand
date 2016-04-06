@@ -4,3 +4,6 @@
 [submodule "CakeHax"]
 	path = CakeHax
 	url = https://github.com/mid-kid/CakeHax
+[submodule "loader"]
+	path = loader
+	url = git@github.com:Reisyukaku/loader.git
