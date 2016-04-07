@@ -48,10 +48,10 @@ void loadFirm(void){
 	u32 ldrSize = fileSize(ldrPath);
     fileRead(firmLocation + 0x26600, ldrPath, ldrSize);
     
-    //Parse firmware
+    //Initial setup
     firm = firmLocation;
     section = firm->section;
-    if(PDN_MPCORE_CFG != 1) arm9loader(firmLocation + section[2].offset);
+    k9loader(firmLocation + section[2].offset);
     
     //Set MPU for emu/thread code region
     getMPU(firmLocation, firmSize, &mpuOffset);

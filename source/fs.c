@@ -8,50 +8,31 @@
 
 static FATFS fs;
 
-int mountSD()
-{
-    if (f_mount(&fs, "0:", 1) != FR_OK) {
-        //printF("Failed to mount SD card!");
-        return 1;
-    }
-    //printF("Mounted SD card");
+int mountSD(){
+    if (f_mount(&fs, "0:", 1)) return 1;
     return 0;
 }
 
-int unmountSD()
-{
-    if (f_mount(NULL, "0:", 1) != FR_OK) {
-        //printF("Failed to mount SD card!");
-        return 1;
-    }
-    //printF("Unmounted SD card");
+int unmountSD(){
+    if (f_mount(NULL, "0:", 1)) return 1;
     return 0;
 }
 
 int fileReadOffset(void *dest, const char *path, Size size, u32 offset){
-    FRESULT fr;
     FIL fp;
     u32 br = 0;
 
-    fr = f_open(&fp, path, FA_READ);
-    if (fr != FR_OK)goto error;
-    
+    if(f_open(&fp, path, FA_READ)) goto error;
     if (!size) size = f_size(&fp);
     if (offset) {
-        fr = f_lseek(&fp, offset);
-        if (fr != FR_OK) goto error;
+        if (f_lseek(&fp, offset)) goto error;
     }
+    if (f_read(&fp, dest, size, &br) && br != size) goto error;
+    return 1;
 
-    fr = f_read(&fp, dest, size, &br);
-    if (fr != FR_OK) goto error;
-
-    fr = f_close(&fp);
-    if (fr != FR_OK) goto error;
-    return 0;
-
-error:
+    error:
     f_close(&fp);
-    return fr;
+    return 0;
 }
 
 int fileRead(void *dest, const char *path, Size size){
@@ -59,28 +40,25 @@ int fileRead(void *dest, const char *path, Size size){
 }
 
 int fileWrite(const void *buffer, const char *path, Size size){
-    FRESULT fr;
     FIL fp;
     u32 br = 0;
 
-    if(f_open(&fp, path, FA_WRITE | FA_OPEN_ALWAYS) == FR_OK){
-        fr = f_write(&fp, buffer, size, &br);
-        f_close(&fp);
-        if (fr == FR_OK && br == size) return 0;
-    }
-    return fr;
+    if(f_open(&fp, path, FA_WRITE | FA_OPEN_ALWAYS)) goto error;
+    if (f_write(&fp, buffer, size, &br) && br != size) goto error;
+    return 1;
+    
+    error:
+    f_close(&fp);
+    return 0;
 }
 
 int fileSize(const char* path){
-	FRESULT fr;
     FIL fp;
-	int size = 0;
 
-    fr = f_open(&fp, path, FA_READ);
-    if (fr != FR_OK)goto error;
+    if(f_open(&fp, path, FA_READ)) goto error;
+    return f_size(&fp);
     
-    size = f_size(&fp);
 	error:
-		f_close(&fp);
-	return size;
+    f_close(&fp);
+	return 0;
 }
