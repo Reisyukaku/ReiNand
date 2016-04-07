@@ -98,19 +98,6 @@ void patchFirm(){
     //Disable firm partition update
     getExe(firmLocation, firmSize, &exeOffset);
     memcpy((u8*)exeOffset, "kek", 3);
-    
-    //Create arm9 thread
-    const char thPath[] = "/rei/thread/arm9.bin";
-    Size thSize = fileSize(thPath);
-    getThreadCode(&threadCodeOffset);
-    getThreadHooks(firmLocation, firmSize, &threadOffset1, &threadOffset2);
-    fileRead(threadCodeOffset, thPath, thSize);
-    uPtr *pos_THD1 = memsearch(threadCodeOffset, "THD1", thSize, 4);
-    uPtr *pos_THD2 = memsearch(threadCodeOffset, "THD2", thSize, 4);
-    *pos_THD1 = 0x080E3408;
-    *pos_THD2 = 0x0808519C;
-    memcpy((u8*)threadOffset1, threadHook1, sizeof(threadHook1));
-    memcpy((u8*)threadOffset2, threadHook2, sizeof(threadHook2));
 }
 
 void launchFirm(void){

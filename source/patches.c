@@ -27,29 +27,10 @@ const u8 nandRedir[0x08] = {0x00, 0x4C, 0xA0, 0x47, 0xC0, 0xA5, 0x01, 0x08};    
 const u8 sigPatch1[2] = {0x00, 0x20};
 const u8 sigPatch2[4] = {0x00, 0x20, 0x70, 0x47};
 
-/*
-*   Arm9 thread
-*/
-const u8 threadHook1[4] = {0x2C, 0xF0, 0x9F, 0xE5};   //ldr pc, =threadHook2
-const u8 threadHook2[4] = {0xC0, 0xA6, 0x01, 0x08};   //threadHook2: .word 0x0801A7E0
-
 
 /**************************************************
 *                   Functions
 **************************************************/
-
-//Where thread code is stored in firm
-void getThreadCode(u32 *off){
-    *off = 0x2407CAC0;
-}
-
-//Offsets to redirect to thread code
-void getThreadHooks(void *pos, u32 size, u32 *off, u32 *off2){
-    const u8 pattern[] = {0x3A, 0x2C, 0x00, 0x9F, 0xE5};
-
-    *off = memsearch(pos, (void*)pattern, size, 5) + 1;
-    *off2 = *off + 0x34;
-}
 
 //Offsets to redirect to thread code
 void getSigChecks(void *pos, u32 size, u32 *off, u32 *off2){
