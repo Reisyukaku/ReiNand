@@ -287,8 +287,11 @@ static void getNandCTR(u8 *buf, u32 console){
     memcpy(buf, shasum, 16);
 }
 
-//Emulates the Arm9loader process
-void arm9loader(void *armHdr){    
+//Emulates the K9L process and then some
+void k9loader(void *armHdr){
+    //If old3ds, skip n3ds parts
+    if(*(u8*)0x10140FFC == 1) goto Legacy;
+    
     //Nand key#2 (0x12C10)
     u8 key2[0x10] = {
         0x10, 0x5A, 0xE8, 0x5A, 0x4A, 0x21, 0x78, 0x53, 0x0B, 0x06, 0xFA, 0x1A, 0x5E, 0x2A, 0x5C, 0xBC
@@ -328,6 +331,16 @@ void arm9loader(void *armHdr){
         aes_setkey(slot, (u8*)decKey, AES_KEYX, AES_INPUT_BE | AES_INPUT_NORMAL);
         *(u8 *)((void *)((uintptr_t)armHdr+0x89814+0xF)) += 1;
     }
+    
+    Legacy:;
+    //Setup legacy keys
+    u8 keyX_0x25[0x10] = {
+        0x9C, 0x82, 0xB1, 0x8B, 0x59, 0xB3, 0x2D, 0xCC, 
+        0xE0, 0x7D, 0x81, 0xC3, 0xE5, 0xC5, 0x28, 0x9F
+    };
+    xor(keyX_0x25, keyX_0x25, memeKey, 0x10);
+    aes_setkey(0x25, (u8*)keyX_0x25, AES_KEYX, AES_INPUT_BE | AES_INPUT_NORMAL);
+    aes_use_keyslot(0x25);
 }
 
 //Decrypt firmware blob
