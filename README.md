@@ -1,14 +1,16 @@
 # ReiNand
 *The original open source N3DS CFW!*
+<sub> (now with O3DS support!)</sub>
 
 
 **Compiling:**
 
 You'll need armips added to your Path. [HERE](https://www.dropbox.com/s/ceuv2qeqp38lpah/armips.exe?dl=0) is a pre-compiled version.
 
-    make - Compiles All. (launcher and a9lh)
+    make - Compiles All. (launcher and a9lh)(Default:N3DS)
     make launcher - Compiles CakeHax/CakeBrah payload
     make a9lh - Compiles arm9loaderhax payload
+    make cons=[variable] - Compiles for a specific console. Variable can be either 'o3ds' or 'n3ds' (no quotes)
 
 Copy everything in 'out' folder to SD root and run!
 
@@ -17,18 +19,22 @@ Copy everything in 'out' folder to SD root and run!
 
 * Ninjhax/MSET/Spider/A9LH support!
 
-* RAM dump (edit RAM.txt with a base 10 number for offset) [Start Button + X]
-
-* Emunand/Patched Sysnand (with 'Rei' version string)
-
-* Region free CIAs and Carts!
+* Emunand/Patched Sysnand (with '.:Rei' version string)
 
 * Sig checks disabled
+
+* Firm partition update protection
+
+* Region free CIAs and Carts!
 
 * Silent updates disabled
 
 * EShop update check disabled
- 
+
+* Ability to modify splash screen
+
+* Ability to modify process patches
+
 
 **Credits:**
  

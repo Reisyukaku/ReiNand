@@ -34,9 +34,10 @@ int memcmp(const void *buf1, const void *buf2, u32 size){
     return 0;
 }
 
-void *memsearch(void *start_pos, void *search, u32 size, u32 size_search){
-    for (void *pos = start_pos + size - size_search; pos >= start_pos; pos--) {
-        if (memcmp(pos, search, size_search) == 0) return pos;
+void *memsearch(void *startPos, void *pattern, u32 searchSize, u32 patternSize){
+    if(!searchSize) return NULL;
+    for (void *pos = startPos + searchSize - patternSize; pos >= startPos; pos--) {
+        if (memcmp(pos, pattern, patternSize) == 0) return pos;
     }
     return NULL;
 }

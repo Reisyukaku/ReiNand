@@ -1,5 +1,7 @@
 /*
-*   fs.c
+*   fc.c
+*       by Reisyukaku
+*   Copyright (c) 2015 All Rights Reserved
 */
 
 #include <stddef.h>
@@ -7,59 +9,49 @@
 #include "fatfs/ff.h"
 
 static FATFS fs;
+static FILE fp; //Had to make a static file since fatfs hated my file pointers.
 
-int mountSD(){
+u8 mountSD(void){
     if (f_mount(&fs, "0:", 1)) return 1;
     return 0;
 }
 
-int unmountSD(){
+u8 unmountSD(void){
     if (f_mount(NULL, "0:", 1)) return 1;
     return 0;
 }
 
-int fileReadOffset(void *dest, const char *path, Size size, u32 offset){
-    FIL fp;
-    u32 br = 0;
-
-    if(f_open(&fp, path, FA_READ)) goto error;
-    if (!size) size = f_size(&fp);
-    if (offset) {
-        if (f_lseek(&fp, offset)) goto error;
-    }
-    if (f_read(&fp, dest, size, &br) && br != size) goto error;
-    return 1;
-
-    error:
-    f_close(&fp);
-    return 0;
+void fopen(const char *filename, const char *mode){
+    if (*mode != 'r' && *mode != 'w' && *mode != 'a') return NULL;
+    f_open(&fp, filename, *mode == 'r' ? FA_READ : (FA_WRITE | FA_OPEN_ALWAYS));
 }
 
-int fileRead(void *dest, const char *path, Size size){
-    return fileReadOffset(dest, path, size, 0);
+void fclose(void){
+    f_close(&fp);
 }
 
-int fileWrite(const void *buffer, const char *path, Size size){
-    FIL fp;
-    u32 br = 0;
-
-    if(f_open(&fp, path, FA_WRITE | FA_OPEN_ALWAYS)) goto error;
-    if (f_write(&fp, buffer, size, &br) && br != size) goto error;
-    f_close(&fp);
-    return 1;
-    
-    error:
-    f_close(&fp);
-    return 0;
+void fseek(u32 offset){
+    f_lseek(&fp, offset);
 }
 
-int fileSize(const char* path){
-    FIL fp;
+u8 eof(void){
+    return f_eof(&fp);
+}
 
-    if(f_open(&fp, path, FA_READ)) goto error;
+Size fsize(void){
     return f_size(&fp);
-    
-	error:
-    f_close(&fp);
-	return 0;
+}
+
+Size fwrite(const char *buffer, Size elementSize, Size elementCnt){
+    u32 br;
+    if(f_write(&fp, buffer, elementSize*elementCnt, &br)) return 0;
+    if (br == elementSize*elementCnt) br /= elementSize; else return 0;
+    return br;
+}
+
+Size fread(const char *buffer, Size elementSize, Size elementCnt){
+    u32 br;
+    if(f_read(&fp, buffer, elementSize*elementCnt, &br)) return 0;
+    if (br == elementSize*elementCnt) br /= elementSize; else return 0;
+    return br;
 }

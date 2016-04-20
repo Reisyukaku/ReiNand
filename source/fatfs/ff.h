@@ -109,7 +109,7 @@ typedef struct {
 
 
 
-/* File object structure (FIL) */
+/* File object structure (FILE) */
 
 typedef struct {
 	FATFS*	fs;				/* Pointer to the related file system object (**do not change order**) */
@@ -134,7 +134,7 @@ typedef struct {
 #if !_FS_TINY
 	BYTE	buf[_MAX_SS];	/* File private data read/write window */
 #endif
-} FIL;
+} FILE;
 
 
 
@@ -163,7 +163,7 @@ typedef struct {
 
 
 
-/* File information structure (FILINFO) */
+/* File information structure (FILEINFO) */
 
 typedef struct {
 	DWORD	fsize;			/* File size */
@@ -175,7 +175,7 @@ typedef struct {
 	TCHAR*	lfname;			/* Pointer to the LFN buffer */
 	UINT 	lfsize;			/* Size of LFN buffer in TCHAR */
 #endif
-} FILINFO;
+} FILEINFO;
 
 
 
@@ -209,25 +209,25 @@ typedef enum {
 /*--------------------------------------------------------------*/
 /* FatFs module application interface                           */
 
-FRESULT f_open (FIL* fp, const TCHAR* path, BYTE mode);				/* Open or create a file */
-FRESULT f_close (FIL* fp);											/* Close an open file object */
-FRESULT f_read (FIL* fp, void* buff, UINT btr, UINT* br);			/* Read data from a file */
-FRESULT f_write (FIL* fp, const void* buff, UINT btw, UINT* bw);	/* Write data to a file */
-FRESULT f_forward (FIL* fp, UINT(*func)(const BYTE*,UINT), UINT btf, UINT* bf);	/* Forward data to the stream */
-FRESULT f_lseek (FIL* fp, DWORD ofs);								/* Move file pointer of a file object */
-FRESULT f_truncate (FIL* fp);										/* Truncate file */
-FRESULT f_sync (FIL* fp);											/* Flush cached data of a writing file */
+FRESULT f_open (FILE* fp, const TCHAR* path, BYTE mode);				/* Open or create a file */
+FRESULT f_close (FILE* fp);											/* Close an open file object */
+FRESULT f_read (FILE* fp, void* buff, UINT btr, UINT* br);			/* Read data from a file */
+FRESULT f_write (FILE* fp, const void* buff, UINT btw, UINT* bw);	/* Write data to a file */
+FRESULT f_forward (FILE* fp, UINT(*func)(const BYTE*,UINT), UINT btf, UINT* bf);	/* Forward data to the stream */
+FRESULT f_lseek (FILE* fp, DWORD ofs);								/* Move file pointer of a file object */
+FRESULT f_truncate (FILE* fp);										/* Truncate file */
+FRESULT f_sync (FILE* fp);											/* Flush cached data of a writing file */
 FRESULT f_opendir (DIR* dp, const TCHAR* path);						/* Open a directory */
 FRESULT f_closedir (DIR* dp);										/* Close an open directory */
-FRESULT f_readdir (DIR* dp, FILINFO* fno);							/* Read a directory item */
-FRESULT f_findfirst (DIR* dp, FILINFO* fno, const TCHAR* path, const TCHAR* pattern);	/* Find first file */
-FRESULT f_findnext (DIR* dp, FILINFO* fno);							/* Find next file */
+FRESULT f_readdir (DIR* dp, FILEINFO* fno);							/* Read a directory item */
+FRESULT f_findfirst (DIR* dp, FILEINFO* fno, const TCHAR* path, const TCHAR* pattern);	/* Find first file */
+FRESULT f_findnext (DIR* dp, FILEINFO* fno);							/* Find next file */
 FRESULT f_mkdir (const TCHAR* path);								/* Create a sub directory */
 FRESULT f_unlink (const TCHAR* path);								/* Delete an existing file or directory */
 FRESULT f_rename (const TCHAR* path_old, const TCHAR* path_new);	/* Rename/Move a file or directory */
-FRESULT f_stat (const TCHAR* path, FILINFO* fno);					/* Get file status */
+FRESULT f_stat (const TCHAR* path, FILEINFO* fno);					/* Get file status */
 FRESULT f_chmod (const TCHAR* path, BYTE attr, BYTE mask);			/* Change attribute of the file/dir */
-FRESULT f_utime (const TCHAR* path, const FILINFO* fno);			/* Change times-tamp of the file/dir */
+FRESULT f_utime (const TCHAR* path, const FILEINFO* fno);			/* Change times-tamp of the file/dir */
 FRESULT f_chdir (const TCHAR* path);								/* Change current directory */
 FRESULT f_chdrive (const TCHAR* path);								/* Change current drive */
 FRESULT f_getcwd (TCHAR* buff, UINT len);							/* Get current directory */
@@ -237,12 +237,12 @@ FRESULT f_setlabel (const TCHAR* label);							/* Set volume label */
 FRESULT f_mount (FATFS* fs, const TCHAR* path, BYTE opt);			/* Mount/Unmount a logical drive */
 FRESULT f_mkfs (const TCHAR* path, BYTE sfd, UINT au);				/* Create a file system on the volume */
 FRESULT f_fdisk (BYTE pdrv, const DWORD szt[], void* work);			/* Divide a physical drive into some partitions */
-int f_putc (TCHAR c, FIL* fp);										/* Put a character to the file */
-int f_puts (const TCHAR* str, FIL* cp);								/* Put a string to the file */
-int f_printf (FIL* fp, const TCHAR* str, ...);						/* Put a formatted string to the file */
-TCHAR* f_gets (TCHAR* buff, int len, FIL* fp);						/* Get a string from the file */
+int f_putc (TCHAR c, FILE* fp);										/* Put a character to the file */
+int f_puts (const TCHAR* str, FILE* cp);								/* Put a string to the file */
+int f_printf (FILE* fp, const TCHAR* str, ...);						/* Put a formatted string to the file */
+TCHAR* f_gets (TCHAR* buff, int len, FILE* fp);						/* Get a string from the file */
 
-#define f_eof(fp) ((int)((fp)->fptr == (fp)->fsize))
+#define f_eof(fp) ((int)((fp)->fptr >= (fp)->fsize))
 #define f_error(fp) ((fp)->err)
 #define f_tell(fp) ((fp)->fptr)
 #define f_size(fp) ((fp)->fsize)
@@ -289,7 +289,7 @@ int ff_del_syncobj (_SYNC_t sobj);				/* Delete a sync object */
 /* Flags and offset address                                     */
 
 
-/* File access control and file status flags (FIL.flag) */
+/* File access control and file status flags (FILE.flag) */
 
 #define	FA_READ				0x01
 #define	FA_OPEN_EXISTING	0x00
