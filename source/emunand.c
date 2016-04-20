@@ -60,5 +60,5 @@ void getEmuCode(void *pos, Size size, u32 *off){
     void *proc9 = memsearch(pos, "Process9", size, 8);
  
     //Looking for the last spot before Process9
-    *off = (u32)memsearch(pos, pattern, size - (size - (u32)(proc9 - pos)), 6) + 0xF;
+    *off = (u32)memsearch(pos, pattern, size - (size - (u32)(proc9 - pos)), 6) + 0xF + (PDN_MPCORE_CFG == 1 ? 0x100 : 0);
 }

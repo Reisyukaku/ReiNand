@@ -1064,7 +1064,7 @@ DWORD create_chain (	/* 0:No free cluster, 1:Internal error, 0xFFFFFFFF:Disk err
 #if _USE_FASTSEEK
 static
 DWORD clmt_clust (	/* <2:Error, >=2:Cluster number */
-	FIL* fp,		/* Pointer to the file object */
+	FILE* fp,		/* Pointer to the file object */
 	DWORD ofs		/* File offset to be converted to cluster# */
 )
 {
@@ -1713,7 +1713,7 @@ FRESULT dir_remove (	/* FR_OK: Successful, FR_DISK_ERR: A disk error */
 static
 void get_fileinfo (		/* No return code */
 	DIR* dp,			/* Pointer to the directory object */
-	FILINFO* fno	 	/* Pointer to the file information to be filled */
+	FILEINFO* fno	 	/* Pointer to the file information to be filled */
 )
 {
 	UINT i;
@@ -2382,10 +2382,10 @@ FRESULT find_volume (	/* FR_OK(0): successful, !=0: any error occurred */
 
 static
 FRESULT validate (	/* FR_OK(0): The object is valid, !=0: Invalid */
-	void* obj		/* Pointer to the object FIL/DIR to check validity */
+	void* obj		/* Pointer to the object FILE/DIR to check validity */
 )
 {
-	FIL *fil = (FIL*)obj;	/* Assuming offset of .fs and .id in the FIL/DIR structure is identical */
+	FILE *fil = (FILE*)obj;	/* Assuming offset of .fs and .id in the FILE/DIR structure is identical */
 
 
 	if (!fil || !fil->fs || !fil->fs->fs_type || fil->fs->id != fil->id)
@@ -2462,7 +2462,7 @@ FRESULT f_mount (
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_open (
-	FIL* fp,			/* Pointer to the blank file object */
+	FILE* fp,			/* Pointer to the blank file object */
 	const TCHAR* path,	/* Pointer to the file name */
 	BYTE mode			/* Access mode and file open mode flags */
 )
@@ -2598,7 +2598,7 @@ FRESULT f_open (
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_read (
-	FIL* fp, 		/* Pointer to the file object */
+	FILE* fp, 		/* Pointer to the file object */
 	void* buff,		/* Pointer to data buffer */
 	UINT btr,		/* Number of bytes to read */
 	UINT* br		/* Pointer to number of bytes read */
@@ -2699,7 +2699,7 @@ FRESULT f_read (
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_write (
-	FIL* fp,			/* Pointer to the file object */
+	FILE* fp,			/* Pointer to the file object */
 	const void *buff,	/* Pointer to the data to be written */
 	UINT btw,			/* Number of bytes to write */
 	UINT* bw			/* Pointer to number of bytes written */
@@ -2821,7 +2821,7 @@ FRESULT f_write (
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_sync (
-	FIL* fp		/* Pointer to the file object */
+	FILE* fp		/* Pointer to the file object */
 )
 {
 	FRESULT res;
@@ -2870,7 +2870,7 @@ FRESULT f_sync (
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_close (
-	FIL *fp		/* Pointer to the file object to be closed */
+	FILE *fp		/* Pointer to the file object to be closed */
 )
 {
 	FRESULT res;
@@ -2968,7 +2968,7 @@ FRESULT f_getcwd (
 	UINT i, n;
 	DWORD ccl;
 	TCHAR *tp;
-	FILINFO fno;
+	FILEINFO fno;
 	DEFINE_NAMEBUF;
 
 
@@ -3042,7 +3042,7 @@ FRESULT f_getcwd (
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_lseek (
-	FIL* fp,		/* Pointer to the file object */
+	FILE* fp,		/* Pointer to the file object */
 	DWORD ofs		/* File pointer from top of file */
 )
 {
@@ -3289,7 +3289,7 @@ FRESULT f_closedir (
 
 FRESULT f_readdir (
 	DIR* dp,			/* Pointer to the open directory object */
-	FILINFO* fno		/* Pointer to file information to return */
+	FILEINFO* fno		/* Pointer to file information to return */
 )
 {
 	FRESULT res;
@@ -3331,7 +3331,7 @@ FRESULT f_readdir (
 
 FRESULT f_findnext (
 	DIR* dp,		/* Pointer to the open directory object */
-	FILINFO* fno	/* Pointer to the file information structure */
+	FILEINFO* fno	/* Pointer to the file information structure */
 )
 {
 	FRESULT res;
@@ -3357,7 +3357,7 @@ FRESULT f_findnext (
 
 FRESULT f_findfirst (
 	DIR* dp,				/* Pointer to the blank directory object */
-	FILINFO* fno,			/* Pointer to the file information structure */
+	FILEINFO* fno,			/* Pointer to the file information structure */
 	const TCHAR* path,		/* Pointer to the directory to open */
 	const TCHAR* pattern	/* Pointer to the matching pattern */
 )
@@ -3383,7 +3383,7 @@ FRESULT f_findfirst (
 
 FRESULT f_stat (
 	const TCHAR* path,	/* Pointer to the file path */
-	FILINFO* fno		/* Pointer to file information to return */
+	FILEINFO* fno		/* Pointer to file information to return */
 )
 {
 	FRESULT res;
@@ -3484,7 +3484,7 @@ FRESULT f_getfree (
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_truncate (
-	FIL* fp		/* Pointer to the file object */
+	FILE* fp		/* Pointer to the file object */
 )
 {
 	FRESULT res;
@@ -3805,7 +3805,7 @@ FRESULT f_rename (
 
 FRESULT f_utime (
 	const TCHAR* path,	/* Pointer to the file/directory name */
-	const FILINFO* fno	/* Pointer to the time stamp to be set */
+	const FILEINFO* fno	/* Pointer to the time stamp to be set */
 )
 {
 	FRESULT res;
@@ -4015,7 +4015,7 @@ FRESULT f_setlabel (
 #if _USE_FORWARD && _FS_TINY
 
 FRESULT f_forward (
-	FIL* fp, 						/* Pointer to the file object */
+	FILE* fp, 						/* Pointer to the file object */
 	UINT (*func)(const BYTE*,UINT),	/* Pointer to the streaming function */
 	UINT btf,						/* Number of bytes to forward */
 	UINT* bf						/* Pointer to number of bytes forwarded */
@@ -4399,7 +4399,7 @@ FRESULT f_fdisk (
 TCHAR* f_gets (
 	TCHAR* buff,	/* Pointer to the string buffer to read */
 	int len,		/* Size of string buffer (characters) */
-	FIL* fp			/* Pointer to the file object */
+	FILE* fp			/* Pointer to the file object */
 )
 {
 	int n = 0;
@@ -4476,7 +4476,7 @@ TCHAR* f_gets (
 /*-----------------------------------------------------------------------*/
 
 typedef struct {
-	FIL* fp;
+	FILE* fp;
 	int idx, nchr;
 	BYTE buf[64];
 } putbuff;
@@ -4540,7 +4540,7 @@ void putc_bfd (
 
 int f_putc (
 	TCHAR c,	/* A character to be output */
-	FIL* fp		/* Pointer to the file object */
+	FILE* fp		/* Pointer to the file object */
 )
 {
 	putbuff pb;
@@ -4567,7 +4567,7 @@ int f_putc (
 
 int f_puts (
 	const TCHAR* str,	/* Pointer to the string to be output */
-	FIL* fp				/* Pointer to the file object */
+	FILE* fp				/* Pointer to the file object */
 )
 {
 	putbuff pb;
@@ -4594,7 +4594,7 @@ int f_puts (
 /*-----------------------------------------------------------------------*/
 
 int f_printf (
-	FIL* fp,			/* Pointer to the file object */
+	FILE* fp,			/* Pointer to the file object */
 	const TCHAR* fmt,	/* Pointer to the format string */
 	...					/* Optional arguments... */
 )

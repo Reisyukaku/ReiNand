@@ -6,6 +6,7 @@ LD := arm-none-eabi-ld
 OC := arm-none-eabi-objcopy
 
 name := ReiNand
+cons ?= N3DS
 
 dir_source := source
 dir_data := data
@@ -55,7 +56,7 @@ $(dir_out)/arm9loaderhax.bin: $(dir_build)/main.bin
 	@cp -av $< $@
 
 .PHONY: $(dir_out)/$(name).dat
-$(dir_out)/$(name).dat: $(dir_build)/main.bin $(dir_out)/rei/
+$(dir_out)/$(name).dat: $(dir_build)/main.bin $(dir_out)/rei/ $(dir_out)/rei/patches
 	@$(MAKE) $(FLAGS) -C $(dir_cakehax) launcher
 	dd if=$(dir_build)/main.bin of=$@ bs=512 seek=144
     
@@ -65,12 +66,21 @@ $(dir_out)/3ds/$(name):
 	@mv $(dir_out)/$(name).3dsx $@
 	@mv $(dir_out)/$(name).smdh $@
     
-$(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin $(dir_data)/loader.cxi
+$(dir_out)/rei/: $(dir_data)/firmware_$(cons).bin $(dir_data)/splash.bin
 	@mkdir -p "$(dir_out)/rei"
-	@cp -av $(dir_data)/* $@
-    
+	@cp -av $^ $@
+	@mv $@/firmware_$(cons).bin $@/firmware.bin
+
+$(dir_out)/rei/patches: $(dir_data)/patches.dat
+	@mkdir -p "$(dir_out)/rei/patches"
+	@cp -av $^ $@
+
 $(dir_out)/rei/loader.cxi: $(dir_loader)
+ifeq ($(cons),N3DS)
 	@$(MAKE) $(FLAGS) -C $(dir_loader)
+else
+	@$(MAKE) $(FLAGS) JUNKNUM=0x5000 -C $(dir_loader)
+endif
 	@mv $(dir_loader)/loader.cxi $(dir_out)/rei
     
 $(dir_out)/rei/emunand/emunand.bin: $(dir_emu)/emuCode.s

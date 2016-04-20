@@ -38,15 +38,11 @@ u32 sigPatchOffset1 = 0,
 //Load firm into FCRAM
 void loadFirm(void){
     //Read FIRM from SD card and write to FCRAM
-	const char firmPath[] = "/rei/firmware.bin";
-	firmSize = fileSize(firmPath);
-    fileRead(firmLocation, firmPath, firmSize);
+    fopen("/rei/firmware.bin", "rb");
+    firmSize = fsize();
+    fread(firmLocation, 1, firmSize);
+    fclose();
     decryptFirm(firmLocation, firmSize);
-    
-    //Inject custom loader
-    const char ldrPath[] = "/rei/loader.cxi";
-	u32 ldrSize = fileSize(ldrPath);
-    fileRead(firmLocation + 0x26600, ldrPath, ldrSize);
     
     //Initial setup
     firm = firmLocation;
@@ -56,21 +52,23 @@ void loadFirm(void){
     //Set MPU for emu/thread code region
     getMPU(firmLocation, firmSize, &mpuOffset);
     memcpy((u8*)mpuOffset, mpu, sizeof(mpu));
+    
+    //Check for Emunand
+    getEmunandSect(&emuOffset, &emuHeader);
+    if(emuOffset || emuHeader) loadEmu();
 }
 
 //Nand redirection
-void loadEmu(void){
-    
-    //Check for Emunand
-    if((HID & 0xFFF) == (1 << 3) || CFG_BOOTENV == 0x7) return; //Override emunand
-    getEmunandSect(&emuOffset, &emuHeader);
-    if(!(emuOffset | emuHeader)) return;
+void loadEmu(void){ 
+    //Dont boot emu if AGB game was just played, or if START was held.
+    if((HID & 0xFFF) == (1 << 3) || CFG_BOOTENV == 0x7) return;
     
     //Read emunand code from SD
-    const char path[] = "/rei/emunand/emunand.bin";
-    Size emuSize = fileSize(path);
+    fopen("/rei/emunand/emunand.bin", "rb");
+    Size emuSize = fsize();
     getEmuCode(firmLocation, firmSize, &emuCodeOffset);
-    fileRead(emuCodeOffset, path, emuSize);
+    fread(emuCodeOffset, 1, emuSize);
+    fclose();
     
     //Setup Emunand code
     uPtr *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", emuSize, 4);
@@ -87,9 +85,8 @@ void loadEmu(void){
     memcpy((u8*)emuWrite, nandRedir, sizeof(nandRedir));
 }
 
-//Patches
-void patchFirm(){
-    
+//Patches Sys/Emu
+void patchFirm(){ 
     //Disable signature checks
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     memcpy((u8*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
@@ -98,10 +95,14 @@ void patchFirm(){
     //Disable firm partition update
     getExe(firmLocation, firmSize, &exeOffset);
     memcpy((u8*)exeOffset, "kek", 3);
+    
+    //Inject custom loader
+    fopen("/rei/loader.cxi", "rb");
+    fread(firmLocation + 0x26600, 1, fsize());
+    fclose();
 }
 
 void launchFirm(void){
-    
     //Copy firm partitions to respective memory locations
     memcpy(section[0].address, firmLocation + section[0].offset, section[0].size);
     memcpy(section[1].address, firmLocation + section[1].offset, section[1].size);
