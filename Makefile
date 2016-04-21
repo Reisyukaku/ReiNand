@@ -6,7 +6,7 @@ LD := arm-none-eabi-ld
 OC := arm-none-eabi-objcopy
 
 name := ReiNand
-cons ?= N3DS
+cons ?= n3ds
 
 dir_source := source
 dir_data := data
@@ -76,7 +76,7 @@ $(dir_out)/rei/patches: $(dir_data)/patches.dat
 	@cp -av $^ $@
 
 $(dir_out)/rei/loader.cxi: $(dir_loader)
-ifeq ($(cons),N3DS)
+ifeq ($(cons),n3ds)
 	@$(MAKE) $(FLAGS) -C $(dir_loader)
 else
 	@$(MAKE) $(FLAGS) JUNKNUM=0x5000 -C $(dir_loader)
