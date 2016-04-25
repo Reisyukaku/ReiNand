@@ -4,12 +4,12 @@
 *   Copyright (c) 2015 All Rights Reserved
 */
 
+#include <string.h>
 #include "firm.h"
 #include "patches.h"
 #include "memory.h"
 #include "fs.h"
 #include "emunand.h"
-#include "crypto.h"
 #include "draw.h"
 
 //Firm vars
@@ -56,6 +56,16 @@ void loadFirm(void){
     //Check for Emunand
     getEmunandSect(&emuOffset, &emuHeader);
     if(emuOffset || emuHeader) loadEmu();
+    else loadSys();
+}
+
+//Setup for Sysnand
+void loadSys(void){
+    //Disable firm partition update if a9lh is installed
+    if(!PDN_SPI_CNT){
+        getExe(firmLocation, firmSize, &exeOffset);
+        memcpy((u8*)exeOffset, "kek", 3);
+    }
 }
 
 //Nand redirection
@@ -85,16 +95,12 @@ void loadEmu(void){
     memcpy((u8*)emuWrite, nandRedir, sizeof(nandRedir));
 }
 
-//Patches Sys/Emu
+//Patches arm9 things on Sys/Emu
 void patchFirm(){ 
     //Disable signature checks
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     memcpy((u8*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
     memcpy((u8*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
-    
-    //Disable firm partition update
-    getExe(firmLocation, firmSize, &exeOffset);
-    memcpy((u8*)exeOffset, "kek", 3);
     
     //Inject custom loader
     fopen("/rei/loader.cxi", "rb");

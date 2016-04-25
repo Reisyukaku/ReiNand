@@ -6,4 +6,4 @@
 	url = https://github.com/mid-kid/CakeHax
 [submodule "loader"]
 	path = loader
-	url = git@github.com:Reisyukaku/loader.git
+	url = https://github.com/Reisyukaku/loader
