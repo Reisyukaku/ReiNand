@@ -2,6 +2,7 @@
 
 #include "crypto.h"
 
+#include <string.h>
 #include <stddef.h>
 #include "memory.h"
 #include "fatfs/sdmmc/sdmmc.h"
