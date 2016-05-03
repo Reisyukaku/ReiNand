@@ -21,9 +21,8 @@ u8 unmountSD(void){
     return 0;
 }
 
-void fopen(const char *filename, const char *mode){
-    if (*mode != 'r' && *mode != 'w' && *mode != 'a') return NULL;
-    f_open(&fp, filename, *mode == 'r' ? FA_READ : (FA_WRITE | FA_OPEN_ALWAYS));
+void fopen(const char *filename){
+    f_open(&fp, filename, FA_READ);
 }
 
 void fclose(void){
@@ -40,13 +39,6 @@ u8 eof(void){
 
 Size fsize(void){
     return f_size(&fp);
-}
-
-Size fwrite(const char *buffer, Size elementSize, Size elementCnt){
-    u32 br;
-    if(f_write(&fp, buffer, elementSize*elementCnt, &br)) return 0;
-    if (br == elementSize*elementCnt) br /= elementSize; else return 0;
-    return br;
 }
 
 Size fread(const char *buffer, Size elementSize, Size elementCnt){
