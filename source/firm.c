@@ -38,7 +38,7 @@ u32 sigPatchOffset1 = 0,
 //Load firm into FCRAM
 void loadFirm(void){
     //Read FIRM from SD card and write to FCRAM
-    fopen("/rei/firmware.bin", "rb");
+    fopen("/rei/firmware.bin");
     firmSize = fsize();
     fread(firmLocation, 1, firmSize);
     fclose();
@@ -48,10 +48,6 @@ void loadFirm(void){
     firm = firmLocation;
     section = firm->section;
     k9loader(firmLocation + section[2].offset);
-    
-    //Set MPU for emu/thread code region
-    getMPU(firmLocation, firmSize, &mpuOffset);
-    memcpy((u8*)mpuOffset, mpu, sizeof(mpu));
     
     //Check for Emunand
     getEmunandSect(&emuOffset, &emuHeader);
@@ -74,7 +70,7 @@ void loadEmu(void){
     if((HID & 0xFFF) == (1 << 3) || CFG_BOOTENV == 0x7) return;
     
     //Read emunand code from SD
-    fopen("/rei/emunand/emunand.bin", "rb");
+    fopen("/rei/emunand/emunand.bin");
     Size emuSize = fsize();
     getEmuCode(firmLocation, firmSize, &emuCodeOffset);
     fread(emuCodeOffset, 1, emuSize);
@@ -93,6 +89,10 @@ void loadEmu(void){
     //Add Emunand hooks
     memcpy((u8*)emuRead, nandRedir, sizeof(nandRedir));
     memcpy((u8*)emuWrite, nandRedir, sizeof(nandRedir));
+
+    //Set MPU for emu code region
+    getMPU(firmLocation, firmSize, &mpuOffset);
+    memcpy((u8*)mpuOffset, mpu, sizeof(mpu));
 }
 
 //Patches arm9 things on Sys/Emu
@@ -103,7 +103,7 @@ void patchFirm(){
     memcpy((u8*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
     
     //Inject custom loader
-    fopen("/rei/loader.cxi", "rb");
+    fopen("/rei/loader.cxi");
     fread(firmLocation + 0x26600, 1, fsize());
     fclose();
 }

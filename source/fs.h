@@ -12,7 +12,7 @@
 
 u8 mountSD(void);
 u8 unmountSD(void);
-void fopen(const char *filename, const char *mode);
+void fopen(const char *filename);
 void fclose(void);
 void fseek(u32 offset);
 u8 eof(void);

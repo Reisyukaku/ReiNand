@@ -32,7 +32,7 @@ void shutdownLCD(void){
 void loadSplash(void){
     //If FB was clear, and the image exists, display
     if(clearScreen()){
-        fopen("/rei/splash.bin", "rb");
+        fopen("/rei/splash.bin");
         fread(fb->top_left, 1, fsize());
         fclose();
         u64 i = 0xFFFFFF; while(--i) __asm("mov r0, r0"); //Less Ghetto sleep func
