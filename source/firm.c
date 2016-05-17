@@ -33,7 +33,7 @@ u32 sigPatchOffset1 = 0,
     threadOffset1 = 0,
     threadOffset2 = 0,
     threadCodeOffset = 0,
-    exeOffset = 0;
+    firmWriteOffset = 0;
 
 //Load firm into FCRAM
 void loadFirm(void){
@@ -53,26 +53,27 @@ void loadFirm(void){
     getMPU(firmLocation, firmSize, &mpuOffset);
     memcpy((u8*)mpuOffset, mpu, sizeof(mpu));
     
-    //Check for Emunand
+    //Dont boot emu if AGB game was just played, or if START was held.
     getEmunandSect(&emuOffset, &emuHeader);
-    if(emuOffset || emuHeader) loadEmu();
-    else loadSys();
+    if((HID & 0xFFF) == (1 << 3) || CFG_BOOTENV == 0x7 || !(emuOffset | emuHeader))
+        loadSys();
+    else
+        loadEmu();
 }
 
 //Setup for Sysnand
 void loadSys(void){
     //Disable firm partition update if a9lh is installed
     if(!PDN_SPI_CNT){
-        getExe(firmLocation, firmSize, &exeOffset);
-        memcpy((u8*)exeOffset, "kek", 3);
+        const u16 fwPatch[] = {0x2000, 0x46C0};
+        getFirmWrite(firmLocation, firmSize, &firmWriteOffset);
+        memcpy((u8*)firmWriteOffset, fwPatch, 4);
     }
 }
 
 //Nand redirection
 void loadEmu(void){ 
-    //Dont boot emu if AGB game was just played, or if START was held.
-    if((HID & 0xFFF) == (1 << 3) || CFG_BOOTENV == 0x7) return;
-    
+
     //Read emunand code from SD
     fopen("/rei/emunand/emunand.bin", "rb");
     Size emuSize = fsize();
@@ -84,7 +85,7 @@ void loadEmu(void){
     uPtr *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", emuSize, 4);
     uPtr *pos_offset = memsearch(emuCodeOffset, "NAND", emuSize, 4);
     uPtr *pos_header = memsearch(emuCodeOffset, "NCSD", emuSize, 4);
-	getSDMMC(firmLocation, firmSize, &sdmmcOffset);
+    getSDMMC(firmLocation, firmSize, &sdmmcOffset);
     getEmuRW(firmLocation, firmSize, &emuRead, &emuWrite);
     *pos_sdmmc = sdmmcOffset;
     *pos_offset = emuOffset;
