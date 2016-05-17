@@ -42,8 +42,9 @@ void getSigChecks(void *pos, u32 size, u32 *off, u32 *off2){
 }
 
 //Offset to exe: protocol
-void getExe(void *pos, u32 size, u32 *off){
-    const char *pattern = "exe:";
+void getFirmWrite(void *pos, u32 size, u32 *off){
+    const u8* exe = memsearch(pos, "exe:", size, 4);
+    const u8 pattern[] = {0x00, 0x28, 0x01, 0xDA};
 
-    *off = memsearch(pos, (void*)pattern, size, 4);
+    *off = memsearch(exe, pattern, 0x100, 4);
 }
