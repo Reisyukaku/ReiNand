@@ -25,16 +25,15 @@ Copy everything in 'out' folder to SD root and run!
 
 * Firm partition update protection
 
-* Region free CIAs and Carts!
-
-* Silent updates disabled
-
-* EShop update check disabled
-
 * Ability to modify splash screen
 
 * Ability to modify process patches
-
+    * Region free CIAs
+    * Region free Carts
+    * Auto updates disabled
+    * EShop update check disabled
+    * RO verification disabled
+    * and [MORE](https://reisyukaku.org/3DS/ReiNand/patches)
 
 **Credits:**
  
@@ -44,7 +43,9 @@ Copy everything in 'out' folder to SD root and run!
     
  Patois/Cakes for CakesBrah.
  
- Yifanlu for custom loader module! 
+ Yifanlu for custom loader module!
+ 
+ Steveice10/Gudenaurock for helping a lot with arm11 stuff!
  
  Normmatt for sdmmc.c and generally being helpful!
  
@@ -57,15 +58,4 @@ Copy everything in 'out' folder to SD root and run!
  
  **License**
  
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+This software is licensed under GPLv3. A copy of the License is attached.

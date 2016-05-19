@@ -71,15 +71,14 @@ $(dir_out)/rei/: $(dir_data)/firmware_$(cons).bin $(dir_data)/splash.bin
 	@cp -av $^ $@
 	@mv $@/firmware_$(cons).bin $@/firmware.bin
 
-$(dir_out)/rei/patches: $(dir_data)/patches.dat
-	@mkdir -p "$(dir_out)/rei/patches"
+$(dir_out)/rei/patches: $(dir_data)/patches/
 	@cp -av $^ $@
 
 $(dir_out)/rei/loader.cxi: $(dir_loader)
 ifeq ($(cons),n3ds)
 	@$(MAKE) $(FLAGS) -C $(dir_loader)
 else
-	@$(MAKE) $(FLAGS) JUNKNUM=0x5000 -C $(dir_loader)
+	@$(MAKE) $(FLAGS) JUNKNUM=0x2000 -C $(dir_loader)
 endif
 	@mv $(dir_loader)/loader.cxi $(dir_out)/rei
     
