@@ -2,7 +2,6 @@
 
 #include "crypto.h"
 
-#include <string.h>
 #include <stddef.h>
 #include "memory.h"
 #include "fatfs/sdmmc/sdmmc.h"
@@ -291,7 +290,7 @@ static void getNandCTR(u8 *buf, u32 console){
 //Emulates the K9L process and then some
 void k9loader(void *armHdr){
     //If old3ds, skip n3ds parts
-    if(*(u8*)0x10140FFC == 1) goto Legacy;
+    if(PDN_MPCORE_CFG == 1) goto Legacy;
     
     //Nand key#2 (0x12C10)
     u8 key2[0x10] = {

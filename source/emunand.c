@@ -32,33 +32,33 @@ void getEmunandSect(u32 *off, u32 *head){
     *head = 0;
 }
 
-void getSDMMC(void *pos, Size size, u32 *off){
+void getSDMMC(void *pos, Size size, uPtr *off){
     //Look for struct code
     const u8 pattern[] = {0x21, 0x20, 0x18, 0x20};
     u8 *sdmmc = memsearch(pos, pattern, size, 4) - 1;
 
-    *off = *(u32 *)(sdmmc + 0x0A) + *(u32 *)(sdmmc + 0x0E);
+    *off = *(uPtr *)(sdmmc + 0x0A) + *(uPtr *)(sdmmc + 0x0E);
 }
 
 
-void getEmuRW(void *pos, Size size, u32 *readOff, u32 *writeOff){
+void getEmuRW(void *pos, Size size, uPtr *readOff, uPtr *writeOff){
     //Look for read/write code
     unsigned char pattern[] = {0x04, 0x00, 0x0D, 0x00, 0x17, 0x00, 0x1E, 0x00, 0xC8, 0x05};
-    *writeOff = (u32)memsearch(pos, pattern, size, 10);
-    *readOff = (u32)memsearch((void *)(*writeOff - 0x1000), pattern, 0x1000, 10);
+    *writeOff = (uPtr)memsearch(pos, pattern, size, 10);
+    *readOff = (uPtr)memsearch((void *)(*writeOff - 0x1000), pattern, 0x1000, 10);
 }
 
-void getMPU(void *pos, Size size, u32 *off){
+void getMPU(void *pos, Size size, uPtr *off){
     //Look for MPU pattern
     unsigned char pattern[] = {0x03, 0x00, 0x24, 0x00, 0x00};
-    *off = (u32)memsearch(pos, pattern, size, 5);
+    *off = (uPtr)memsearch(pos, pattern, size, 5);
 }
 
-void getEmuCode(void *pos, Size size, u32 *off){
+void getEmuCode(void *pos, Size size, uPtr *off){
     //Finds start of 0xFF field
     unsigned char pattern[] = {0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF};
-    void *proc9 = memsearch(pos, "Process9", size, 8);
+    void *proc9 = memsearch(pos, "Proc", size, 4);
  
     //Looking for the last spot before Process9
-    *off = (u32)memsearch(pos, pattern, size - (size - (u32)(proc9 - pos)), 6) + 0xF + (PDN_MPCORE_CFG == 1 ? 0x100 : 0);
+    *off = (uPtr)memsearch(pos, pattern, size - (size - (uPtr)(proc9 - pos)), 6) + 0xF + (PDN_MPCORE_CFG == 1 ? 0x100 : 0);
 }

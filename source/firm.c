@@ -4,13 +4,14 @@
 *   Copyright (c) 2015 All Rights Reserved
 */
 
-#include <string.h>
 #include "firm.h"
 #include "patches.h"
 #include "memory.h"
 #include "fs.h"
 #include "emunand.h"
-#include "draw.h"
+#include "lcd.h"
+#include "crypto.h"
+#include "../build/payloads.h"
 
 //Firm vars
 const void *firmLocation = (void*)0x24000000;
@@ -19,27 +20,29 @@ firmSectionHeader *section = NULL;
 Size firmSize = 0;
 
 //Emu vars
-u32 emuOffset = 0,
-    emuHeader = 0,
-    emuRead = 0,
-    emuWrite = 0,
-    sdmmcOffset = 0,
-    mpuOffset = 0,
-    emuCodeOffset = 0;
+uPtr emuOffset = 0,
+     emuHeader = 0,
+     emuRead = 0,
+     emuWrite = 0,
+     sdmmcOffset = 0,
+     mpuOffset = 0,
+     emuCodeOffset = 0;
     
 //Patch vars
-u32 sigPatchOffset1 = 0,
-    sigPatchOffset2 = 0,
-    threadOffset1 = 0,
-    threadOffset2 = 0,
-    threadCodeOffset = 0,
-    firmWriteOffset = 0;
+uPtr sigPatchOffset1 = 0,
+     sigPatchOffset2 = 0,
+     threadOffset1 = 0,
+     threadOffset2 = 0,
+     threadCodeOffset = 0,
+     firmWriteOffset = 0,
+     ldrOffset = 0;
 
 //Load firm into FCRAM
 void loadFirm(void){
     //Read FIRM from SD card and write to FCRAM
     fopen("/rei/firmware.bin", "rb");
-    firmSize = fsize();
+    firmSize = fsize()/2;
+    if(PDN_MPCORE_CFG == 1) fseek(firmSize);
     fread(firmLocation, 1, firmSize);
     fclose();
     decryptFirm(firmLocation, firmSize);
@@ -53,6 +56,17 @@ void loadFirm(void){
     getMPU(firmLocation, firmSize, &mpuOffset);
     memcpy((u8*)mpuOffset, mpu, sizeof(mpu));
     
+    //Inject custom loader
+    fopen("/rei/loader.cxi", "rb");
+    u8 *arm11SysMods = (u8 *)firm + section[0].offset;
+    Size ldrInFirmSize;
+    Size ldrFileSize = fsize();
+    getLoader(arm11SysMods, &ldrInFirmSize, &ldrOffset);
+    memcpy(section[0].address, arm11SysMods, ldrOffset);
+    fread(section[0].address + ldrOffset, 1, ldrFileSize);
+    memcpy(section[0].address + ldrOffset + ldrFileSize, arm11SysMods + ldrOffset + ldrInFirmSize, section[0].size - (ldrOffset + ldrInFirmSize));
+    fclose();
+    
     //Dont boot emu if AGB game was just played, or if START was held.
     getEmunandSect(&emuOffset, &emuHeader);
     if((HID & 0xFFF) == (1 << 3) || CFG_BOOTENV == 0x7 || !(emuOffset | emuHeader))
@@ -65,7 +79,6 @@ void loadFirm(void){
 void loadSys(void){
     //Disable firm partition update if a9lh is installed
     if(!PDN_SPI_CNT){
-        const u16 fwPatch[] = {0x2000, 0x46C0};
         getFirmWrite(firmLocation, firmSize, &firmWriteOffset);
         memcpy((u8*)firmWriteOffset, fwPatch, 4);
     }
@@ -73,18 +86,14 @@ void loadSys(void){
 
 //Nand redirection
 void loadEmu(void){ 
-
     //Read emunand code from SD
-    fopen("/rei/emunand/emunand.bin", "rb");
-    Size emuSize = fsize();
     getEmuCode(firmLocation, firmSize, &emuCodeOffset);
-    fread(emuCodeOffset, 1, emuSize);
-    fclose();
+    memcpy(emuCodeOffset, emunand, emunand_size);
     
     //Setup Emunand code
-    uPtr *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", emuSize, 4);
-    uPtr *pos_offset = memsearch(emuCodeOffset, "NAND", emuSize, 4);
-    uPtr *pos_header = memsearch(emuCodeOffset, "NCSD", emuSize, 4);
+    uPtr *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", emunand_size, 4);
+    uPtr *pos_offset = memsearch(emuCodeOffset, "NAND", emunand_size, 4);
+    uPtr *pos_header = memsearch(emuCodeOffset, "NCSD", emunand_size, 4);
     getSDMMC(firmLocation, firmSize, &sdmmcOffset);
     getEmuRW(firmLocation, firmSize, &emuRead, &emuWrite);
     *pos_sdmmc = sdmmcOffset;
@@ -102,23 +111,16 @@ void patchFirm(){
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     memcpy((u8*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
     memcpy((u8*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
-    
-    //Inject custom loader
-    fopen("/rei/loader.cxi", "rb");
-    fread(firmLocation + 0x26600, 1, fsize());
-    fclose();
 }
 
 void launchFirm(void){
     //Copy firm partitions to respective memory locations
-    memcpy(section[0].address, firmLocation + section[0].offset, section[0].size);
     memcpy(section[1].address, firmLocation + section[1].offset, section[1].size);
     memcpy(section[2].address, firmLocation + section[2].offset, section[2].size);
     
     //Run ARM11 screen stuff
     vu32 *arm11 = (vu32*)0x1FFFFFF8;
-    *arm11 = (u32)shutdownLCD;
-    while (*arm11);
+    shutdownLCD();
     
     //Set ARM11 kernel
     *arm11 = (u32)firm->arm11Entry;

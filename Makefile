@@ -6,16 +6,15 @@ LD := arm-none-eabi-ld
 OC := arm-none-eabi-objcopy
 
 name := ReiNand
-cons ?= n3ds
 
 dir_source := source
 dir_data := data
 dir_build := build
 dir_cakehax := CakeHax
 dir_cakebrah := CakeBrah
-dir_out := out
-dir_emu := emunand
 dir_loader := loader
+dir_out := out
+dir_payload := payloads
 
 ASFLAGS := -mlittle-endian -mcpu=arm946e-s -march=armv5te
 CFLAGS := -Wall -Wextra -MMD -MP -O2 -marm $(ASFLAGS) -fno-builtin -fshort-wchar -std=c11 -Wno-main
@@ -26,7 +25,7 @@ objects_cfw = $(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \
 			  $(call rwildcard, $(dir_source), *.s *.c)))
 
 .PHONY: all
-all: launcher a9lh emunand loader ninjhax
+all: launcher a9lh loader ninjhax
 
 .PHONY: a9lh
 a9lh: $(dir_out)/arm9loaderhax.bin
@@ -34,11 +33,8 @@ a9lh: $(dir_out)/arm9loaderhax.bin
 .PHONY: launcher
 launcher: $(dir_out)/$(name).dat 
 
-.PHONY: emunand
-emunand: $(dir_out)/rei/emunand/emunand.bin
-
 .PHONY: loader
-emunand: $(dir_out)/rei/loader.cxi
+loader: $(dir_out)/rei/loader.cxi
 
 .PHONY: ninjhax
 ninjhax: $(dir_out)/3ds/$(name)
@@ -66,31 +62,28 @@ $(dir_out)/3ds/$(name):
 	@mv $(dir_out)/$(name).3dsx $@
 	@mv $(dir_out)/$(name).smdh $@
     
-$(dir_out)/rei/: $(dir_data)/firmware_$(cons).bin $(dir_data)/splash.bin
+$(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin
 	@mkdir -p "$(dir_out)/rei"
 	@cp -av $^ $@
-	@mv $@/firmware_$(cons).bin $@/firmware.bin
 
 $(dir_out)/rei/patches: $(dir_data)/patches/
 	@cp -av $^ $@
 
 $(dir_out)/rei/loader.cxi: $(dir_loader)
-ifeq ($(cons),n3ds)
 	@$(MAKE) $(FLAGS) -C $(dir_loader)
-else
-	@$(MAKE) $(FLAGS) JUNKNUM=0x2000 -C $(dir_loader)
-endif
 	@mv $(dir_loader)/loader.cxi $(dir_out)/rei
     
-$(dir_out)/rei/emunand/emunand.bin: $(dir_emu)/emuCode.s
+$(dir_build)/payloads.h: $(dir_payload)/emunand.s
+	@mkdir $(dir_build)
 	@armips $<
-	@mkdir -p "$(dir_out)/rei/emunand"
-	@mv emunand.bin $(dir_out)/rei/emunand
+	@armips $(word 1,$^)
+	@mv emunand.bin $(dir_build)
+	@bin2c -o $@ -n emunand $(dir_build)/emunand.bin
 
 $(dir_build)/main.bin: $(dir_build)/main.elf
 	$(OC) -S -O binary $< $@
 
-$(dir_build)/main.elf: $(objects_cfw)
+$(dir_build)/main.elf: $(dir_build)/payloads.h $(objects_cfw)
 	# FatFs requires libgcc for __aeabi_uidiv
 	$(CC) -nostartfiles $(LDFLAGS) -T linker.ld $(OUTPUT_OPTION) $^
 

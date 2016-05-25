@@ -7,6 +7,7 @@
 #include "draw.h"
 #include "fs.h"
 #include "memory.h"
+#include "lcd.h"
 
 u8 clearScreen(void){
     //Only clear screens if they are initialized
@@ -15,18 +16,6 @@ u8 clearScreen(void){
     memset(fb->top_right, 0, 0x38400);
     memset(fb->bottom, 0, 0x38400);
     return 1;
-}
-
-void shutdownLCD(void){
-    //Clear LCDs
-    *(vu32*)0x10202A44 = 0;
-    *(vu32*)0x10202244 = 0;
-    *(vu32*)0x10202014 = 0;
-    
-    //Clear ARM11 entry offset and wait for ARM11 to set it, and jumps
-    *(vu32*)0x1FFFFFF8 = 0;
-    while (!*(vu32*)0x1FFFFFF8);
-    ((void (*)())*(vu32*)0x1FFFFFF8)();
 }
 
 void loadSplash(void){

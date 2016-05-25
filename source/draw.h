@@ -4,9 +4,10 @@
 *   Copyright (c) 2015 All Rights Reserved
 */
 
-#include "types.h"
+#ifndef DRAW_INC
+#define DRAW_INC
 
-#define GPU_PDN_CNT (*(vu8 *)0x10141200)
+#include "types.h"
 
 static struct fb {
     u8 *top_left;
@@ -15,5 +16,5 @@ static struct fb {
 } *fb = (struct fb *)0x23FFFE00;
 
 u8 clearScreen(void);
-void shutdownLCD(void);
 void loadSplash(void);
+#endif

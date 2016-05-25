@@ -11,21 +11,20 @@
 *                   Patches
 **************************************************/
 
-/*
-*   MPU
-*/
-const u8 mpu[0x2C] = {    //MPU shit
+// MPU
+const u8 mpu[0x2C] = {
     0x03, 0x00, 0x36, 0x00, 0x00, 0x00, 0x10, 0x10, 0x01, 0x00, 0x00, 0x01, 0x03, 0x00, 0x36, 0x00, 
     0x00, 0x00, 0x00, 0x20, 0x01, 0x01, 0x01, 0x01, 0x03, 0x06, 0x20, 0x00, 0x00, 0x00, 0x00, 0x08, 
     0x01, 0x01, 0x01, 0x01, 0x03, 0x06, 0x1C, 0x00, 0x00, 0x00, 0x02, 0x08
     };
 const u8 nandRedir[0x08] = {0x00, 0x4C, 0xA0, 0x47, 0xC0, 0xA5, 0x01, 0x08};    //Branch to emunand function
 
-/*
-*   Sig checks
-*/
+// Sig checks
 const u8 sigPatch1[2] = {0x00, 0x20};
 const u8 sigPatch2[4] = {0x00, 0x20, 0x70, 0x47};
+
+// Firmware update protection
+const u16 fwPatch[] = {0x2000, 0x46C0};
 
 
 /**************************************************
@@ -33,18 +32,32 @@ const u8 sigPatch2[4] = {0x00, 0x20, 0x70, 0x47};
 **************************************************/
 
 //Offsets to redirect to thread code
-void getSigChecks(void *pos, u32 size, u32 *off, u32 *off2){
+void getSigChecks(void *pos, Size size, uPtr *off, uPtr *off2){
     const u8 pattern[] = {0xC0, 0x1C, 0x76, 0xE7};
     const u8 pattern2[] = {0xB5, 0x22, 0x4D, 0x0C};
 
-    *off = (u32)memsearch(pos, (void*)pattern, size, 4);
-    *off2 = (u32)memsearch(pos, (void*)pattern2, size, 4) - 1;
+    *off = (uPtr)memsearch(pos, (void*)pattern, size, 4);
+    *off2 = (uPtr)memsearch(pos, (void*)pattern2, size, 4) - 1;
 }
 
 //Offset to exe: protocol
-void getFirmWrite(void *pos, u32 size, u32 *off){
-    const u8* exe = memsearch(pos, "exe:", size, 4);
+void getFirmWrite(void *pos, Size size, uPtr *off){
     const u8 pattern[] = {0x00, 0x28, 0x01, 0xDA};
+    uPtr *exe = memsearch(pos, "exe:", size, 4);
 
-    *off = memsearch(exe, pattern, 0x100, 4);
+    *off = (uPtr)memsearch(exe, pattern, 0x100, 4);
+}
+
+void getLoader(void *pos, Size *ldrSize, uPtr *ldrOff){
+    u8 *off = (u8*)pos;
+    Size s;
+
+    while(1){
+        s = *(u32*)(off + 0x104) * 0x200;
+        if(*(u32*)(off + 0x200) == 0x64616F6C) break;
+        off += s;
+    }
+
+    *ldrSize = s;
+    *ldrOff = (uPtr)(off - (u8*)pos);
 }

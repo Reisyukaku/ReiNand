@@ -1,9 +1,8 @@
 // From http://github.com/b1l1s/ctr
 
-#ifndef __CRYPTO_H
-#define __CRYPTO_H
+#ifndef CRYPTO_INC
+#define CRYPTO_INC
 
-#include <stdint.h>
 #include "types.h"
 
 #define FIRM_TYPE_ARM9          0

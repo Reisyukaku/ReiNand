@@ -5,12 +5,10 @@
 
 **Compiling:**
 
-You'll need armips added to your Path. [HERE](https://www.dropbox.com/s/ceuv2qeqp38lpah/armips.exe?dl=0) is a pre-compiled version.
+You'll need armips and bin2c added to your Path. [HERE](https://reisyukaku.org/downloads/buildtools.zip) are the pre-compiled binaries for Windows.
 
-    make - Compiles All. (launcher and a9lh)(Default:N3DS)
-    make launcher - Compiles CakeHax/CakeBrah payload
+    make - Compiles All. (launcher and a9lh)
     make a9lh - Compiles arm9loaderhax payload
-    make cons=[variable] - Compiles for a specific console. Variable can be either 'o3ds' or 'n3ds' (no quotes)
 
 Copy everything in 'out' folder to SD root and run!
 
@@ -49,7 +47,7 @@ Copy everything in 'out' folder to SD root and run!
  
  Normmatt for sdmmc.c and generally being helpful!
  
- AuroraWright for being helpful!
+ AuroraWright for being helpful with better sysmod injection and stuff!
     
  Me (Rei) for coding everything else.
  
