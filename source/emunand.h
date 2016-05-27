@@ -11,10 +11,10 @@
 
 #define NCSD_MAGIC (0x4453434E)
 
-void getEmunandSect(u32 *off, u32 *head);
-void getSDMMC(void *pos, Size size, uPtr *off);
-void getEmuRW(void *pos, Size size, uPtr *readOff, uPtr *writeOff);
-void getMPU(void *pos, Size size, uPtr *off);
-void getEmuCode(void *pos, Size size, uPtr *off);
+void getEmunandSect(uPtr *off, uPtr *head);
+void getSDMMC(const void *pos, Size size, uPtr *off);
+void getEmuRW(const void *pos, Size size, uPtr *readOff, uPtr *writeOff);
+void getMPU(const void *pos, Size size, uPtr *off);
+void getEmuCode(const void *pos, Size size, uPtr *off);
 
 #endif

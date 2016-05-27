@@ -17,7 +17,7 @@ dir_out := out
 dir_payload := payloads
 
 ASFLAGS := -mlittle-endian -mcpu=arm946e-s -march=armv5te
-CFLAGS := -Wall -Wextra -MMD -MP -O2 -marm $(ASFLAGS) -fno-builtin -fshort-wchar -std=c11 -Wno-main
+CFLAGS := -Wall -MMD -MP -O2 -marm $(ASFLAGS) -fno-builtin -fshort-wchar -std=c11 -Wno-main
 FLAGS := name=$(name).dat dir_out=$(abspath $(dir_out)) ICON=$(abspath icon.png) --no-print-directory
 
 objects_cfw = $(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \

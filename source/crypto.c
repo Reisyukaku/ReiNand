@@ -226,44 +226,7 @@ void aes(void* dst, const void* src, u32 blockCount, void* iv, u32 mode, u32 ivM
 	}
 }
 
-static void sha_init(u32 mode)
-{
-    while(*REG_SHACNT & 1);
-    *REG_SHACNT = mode | SHA_CNT_OUTPUT_ENDIAN | SHA_NORMAL_ROUND;
-}
-
-static void sha_update(const void* src, u32 size)
-{  
-    const u32* src32 = (const u32*)src;
-    
-    while(size >= 0x40) {
-        while(*REG_SHACNT & 1);
-        for(u32 i = 0; i < 4; i++) {
-            *REG_SHAINFIFO = *src32++;
-            *REG_SHAINFIFO = *src32++;
-            *REG_SHAINFIFO = *src32++;
-            *REG_SHAINFIFO = *src32++;
-        }
-        size -= 0x40;
-    }
-    while(*REG_SHACNT & 1);
-    memcpy((void*)REG_SHAINFIFO, src32, size);
-}
-
-static void sha_get(void* res) {
-    *REG_SHACNT = (*REG_SHACNT & ~SHA_NORMAL_ROUND) | SHA_FINAL_ROUND;
-    while(*REG_SHACNT & SHA_FINAL_ROUND);
-    while(*REG_SHACNT & 1);
-    memcpy(res, (void*)REG_SHAHASH, (256 / 8));
-}
-
-static void sha_quick(void* res, const void* src, u32 size, u32 mode) {
-    sha_init(mode);
-    sha_update(src, size);
-    sha_get(res);
-}
-
-void xor(void *dest, void *data1, void *data2, u32 size){
+void xor(u8 *dest, const u8 *data1, const u8 *data2, Size size){
     u32 i; for(i = 0; i < size; i++) *((u8*)dest+i) = *((u8*)data1+i) ^ *((u8*)data2+i);
 }
 
@@ -274,18 +237,6 @@ void xor(void *dest, void *data1, void *data2, u32 size){
 const u8 memeKey[0x10] = {
     0x52, 0x65, 0x69, 0x20, 0x69, 0x73, 0x20, 0x62, 0x65, 0x73, 0x74, 0x20, 0x67, 0x69, 0x72, 0x6C
 };
-
-//Get Nand CTR key
-static void getNandCTR(u8 *buf, u32 console){
-    // calculate CTRNAND/TWL ctr from NAND CID
-    // Taken from Decrypt9
-    u8 NandCid[16];
-    u8 shasum[32];
-    
-    sdmmc_get_cid(1, (uint32_t *)NandCid);
-    sha_quick(shasum, NandCid, 16, SHA256_MODE);
-    memcpy(buf, shasum, 16);
-}
 
 //Emulates the K9L process and then some
 void k9loader(void *armHdr){
@@ -305,31 +256,31 @@ void k9loader(void *armHdr){
     
     //Setup keys needed for arm9bin decryption
     xor(key2, key2, memeKey, 0x10);
-    memcpy((u8*)keyY, (void *)((uintptr_t)armHdr+0x10), 0x10);
-    memcpy((u8*)CTR, (void *)((uintptr_t)armHdr+0x20), 0x10);
-    u32 size = atoi((void *)((uintptr_t)armHdr+0x30));
+    memcpy((u8*)keyY, (void*)((uPtr)armHdr+0x10), 0x10);
+    memcpy((u8*)CTR, (void*)((uPtr)armHdr+0x20), 0x10);
+    u32 size = atoi((void*)((uPtr)armHdr+0x30));
 
     //Set 0x11 to key2 for the arm9bin and misc keys
     aes_setkey(0x11, (u8*)key2, AES_KEYNORMAL, AES_INPUT_BE | AES_INPUT_NORMAL);
     aes_use_keyslot(0x11);
     
     //Set 0x16 keyX, keyY and CTR
-    aes((u8*)keyX, (void *)((uintptr_t)armHdr+0x60), 1, NULL, AES_ECB_DECRYPT_MODE, 0);
+    aes((u8*)keyX, (void*)((uPtr)armHdr+0x60), 1, NULL, AES_ECB_DECRYPT_MODE, 0);
     aes_setkey(slot, (u8*)keyX, AES_KEYX, AES_INPUT_BE | AES_INPUT_NORMAL);
     aes_setkey(slot, (u8*)keyY, AES_KEYY, AES_INPUT_BE | AES_INPUT_NORMAL);
     aes_setiv((u8*)CTR, AES_INPUT_BE | AES_INPUT_NORMAL);
     aes_use_keyslot(slot);
     
     //Decrypt arm9bin
-    aes((void *)(armHdr+0x800), (void *)(armHdr+0x800), size/AES_BLOCK_SIZE, CTR, AES_CTR_MODE, AES_INPUT_BE | AES_INPUT_NORMAL);
+    aes((void*)(armHdr+0x800), (void*)(armHdr+0x800), size/AES_BLOCK_SIZE, CTR, AES_CTR_MODE, AES_INPUT_BE | AES_INPUT_NORMAL);
     
     //Set keys 0x19..0x1F keyXs
-    u8* decKey = (void *)((uintptr_t)armHdr+0x89824);
+    u8* decKey = (void*)((uPtr)armHdr+0x89824);
     aes_use_keyslot(0x11);
     for(slot = 0x19; slot < 0x20; slot++) {
-        aes(decKey, (void *)((uintptr_t)armHdr+0x89814), 1, NULL, AES_ECB_DECRYPT_MODE, 0);
+        aes(decKey, (void*)((uPtr)armHdr+0x89814), 1, NULL, AES_ECB_DECRYPT_MODE, 0);
         aes_setkey(slot, (u8*)decKey, AES_KEYX, AES_INPUT_BE | AES_INPUT_NORMAL);
-        *(u8 *)((void *)((uintptr_t)armHdr+0x89814+0xF)) += 1;
+        *(u8*)((void*)((uPtr)armHdr+0x89814+0xF)) += 1;
     }
     
     Legacy:;

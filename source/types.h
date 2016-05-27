@@ -10,10 +10,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define CFG_BOOTENV *(vu32 *)0x10010000
-#define HID ~*(vu32 *)0x10146000
+#define CFG_BOOTENV *(vu32*)0x10010000
+#define HID ~*(vu32*)0x10146000
 #define PDN_MPCORE_CFG *(u8*)0x10140FFC
-#define PDN_SPI_CNT *(vu32 *)0x101401C0
+#define PDN_SPI_CNT *(vu32*)0x101401C0
 
 //Common data types
 typedef uint8_t u8;
@@ -39,8 +39,8 @@ typedef struct firmSectionHeader {
 typedef struct firmHeader {
     u32 magic;
     u32 reserved1;
-    u8 *arm11Entry;
-    u8 *arm9Entry;
+    u32 arm11Entry;
+    u32 arm9Entry;
     u8 reserved2[0x30];
     firmSectionHeader section[4];
 } firmHeader;

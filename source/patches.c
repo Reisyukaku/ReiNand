@@ -32,23 +32,23 @@ const u16 fwPatch[] = {0x2000, 0x46C0};
 **************************************************/
 
 //Offsets to redirect to thread code
-void getSigChecks(void *pos, Size size, uPtr *off, uPtr *off2){
+void getSigChecks(const void *pos, Size size, uPtr *off, uPtr *off2){
     const u8 pattern[] = {0xC0, 0x1C, 0x76, 0xE7};
     const u8 pattern2[] = {0xB5, 0x22, 0x4D, 0x0C};
 
-    *off = (uPtr)memsearch(pos, (void*)pattern, size, 4);
-    *off2 = (uPtr)memsearch(pos, (void*)pattern2, size, 4) - 1;
+    *off = memsearch(pos, (void*)pattern, size, 4);
+    *off2 = memsearch(pos, (void*)pattern2, size, 4) - 1;
 }
 
 //Offset to exe: protocol
-void getFirmWrite(void *pos, Size size, uPtr *off){
+void getFirmWrite(const void *pos, Size size, uPtr *off){
     const u8 pattern[] = {0x00, 0x28, 0x01, 0xDA};
-    uPtr *exe = memsearch(pos, "exe:", size, 4);
+    uPtr exe = memsearch(pos, "exe:", size, 4);
 
-    *off = (uPtr)memsearch(exe, pattern, 0x100, 4);
+    *off = memsearch((void*)exe, (void*)pattern, 0x100, 4);
 }
 
-void getLoader(void *pos, Size *ldrSize, uPtr *ldrOff){
+void getLoader(const void *pos, Size *ldrSize, uPtr *ldrOff){
     u8 *off = (u8*)pos;
     Size s;
 

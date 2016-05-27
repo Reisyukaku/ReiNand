@@ -10,6 +10,6 @@
 #include <string.h>
 #include "types.h"
 
-void *memsearch(void *startPos, void *pattern, u32 searchSize, u32 patternSize);
+uPtr memsearch(const void *startPos, const void *pattern, u32 searchSize, u32 patternSize);
 
 #endif

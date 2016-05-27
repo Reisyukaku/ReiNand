@@ -21,8 +21,8 @@ const u16 fwPatch[2];
 /**************************************************
 *                   Functions
 **************************************************/
-void getSigChecks(void *pos, Size size, uPtr *off, uPtr *off2);
-void getFirmWrite(void *pos, Size size, uPtr *off);
-void getLoader(void *pos, Size *ldrSize, uPtr *ldrOff);
+void getSigChecks(const void *pos, Size size, uPtr *off, uPtr *off2);
+void getFirmWrite(const void *pos, Size size, uPtr *off);
+void getLoader(const void *pos, Size *ldrSize, uPtr *ldrOff);
 
 #endif

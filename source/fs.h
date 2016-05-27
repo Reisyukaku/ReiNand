@@ -11,12 +11,12 @@
 
 u8 mountSD(void);
 u8 unmountSD(void);
-void fopen(char *filename, const char *mode);
+void fopen(const void *filename, const char *mode);
 void fclose(void);
 void fseek(u32 offset);
 u8 eof(void);
 Size fsize(void);
-Size fwrite(char *buffer, Size elementSize, Size elementCnt);
-Size fread(char *buffer, Size elementSize, Size elementCnt);
+Size fwrite(const void *buffer, Size elementSize, Size elementCnt);
+Size fread(const void *buffer, Size elementSize, Size elementCnt);
 
 #endif

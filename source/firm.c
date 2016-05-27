@@ -88,29 +88,29 @@ void loadSys(void){
 void loadEmu(void){ 
     //Read emunand code from SD
     getEmuCode(firmLocation, firmSize, &emuCodeOffset);
-    memcpy(emuCodeOffset, emunand, emunand_size);
+    memcpy((void*)emuCodeOffset, emunand, emunand_size);
     
     //Setup Emunand code
-    uPtr *pos_sdmmc = memsearch(emuCodeOffset, "SDMC", emunand_size, 4);
-    uPtr *pos_offset = memsearch(emuCodeOffset, "NAND", emunand_size, 4);
-    uPtr *pos_header = memsearch(emuCodeOffset, "NCSD", emunand_size, 4);
-    getSDMMC(firmLocation, firmSize, &sdmmcOffset);
-    getEmuRW(firmLocation, firmSize, &emuRead, &emuWrite);
+    uPtr *pos_sdmmc = (uPtr*)memsearch((void*)emuCodeOffset, "SDMC", emunand_size, 4);
+    uPtr *pos_offset = (uPtr*)memsearch((void*)emuCodeOffset, "NAND", emunand_size, 4);
+    uPtr *pos_header = (uPtr*)memsearch((void*)emuCodeOffset, "NCSD", emunand_size, 4);
+    getSDMMC(firmLocation, firmSize, (void*)&sdmmcOffset);
+    getEmuRW(firmLocation, firmSize, (void*)&emuRead, (void*)&emuWrite);
     *pos_sdmmc = sdmmcOffset;
     *pos_offset = emuOffset;
     *pos_header = emuHeader;
     
     //Add Emunand hooks
-    memcpy((u8*)emuRead, nandRedir, sizeof(nandRedir));
-    memcpy((u8*)emuWrite, nandRedir, sizeof(nandRedir));
+    memcpy((void*)emuRead, nandRedir, sizeof(nandRedir));
+    memcpy((void*)emuWrite, nandRedir, sizeof(nandRedir));
 }
 
 //Patches arm9 things on Sys/Emu
 void patchFirm(){ 
     //Disable signature checks
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
-    memcpy((u8*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
-    memcpy((u8*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
+    memcpy((void*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
+    memcpy((void*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
 }
 
 void launchFirm(void){
@@ -123,9 +123,9 @@ void launchFirm(void){
     shutdownLCD();
     
     //Set ARM11 kernel
-    *arm11 = (u32)firm->arm11Entry;
+    *arm11 = firm->arm11Entry;
     
     //Final jump to arm9 binary
-    u32 entry = PDN_MPCORE_CFG != 1 ? 0x801B01C : firm->arm9Entry;
+    u32 entry = PDN_MPCORE_CFG != 1 ? (u32)0x801B01C : firm->arm9Entry;
     ((void (*)())entry)();
 }

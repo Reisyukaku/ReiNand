@@ -5,10 +5,10 @@
 */
 #include "memory.h"
 
-void *memsearch(void *startPos, void *pattern, u32 searchSize, u32 patternSize){
-    if(!searchSize) return NULL;
+uPtr memsearch(const void *startPos, const void *pattern, u32 searchSize, u32 patternSize){
+    if(!searchSize) return 0;
     for (void *pos = startPos + searchSize - patternSize; pos >= startPos; pos--) {
-        if (memcmp(pos, pattern, patternSize) == 0) return pos;
+        if (memcmp(pos, pattern, patternSize) == 0) return (uPtr)pos;
     }
-    return NULL;
+    return 0;
 }

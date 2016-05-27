@@ -11,8 +11,8 @@
 
 static u8 *temp = (u8*)0x24300000;
 
-void getEmunandSect(u32 *off, u32 *head){
-    u32 nandSize = getMMCDevice(0)->total_size;
+void getEmunandSect(uPtr *off, uPtr *head){
+    Size nandSize = getMMCDevice(0)->total_size;
     if (sdmmc_sdcard_readsectors(1, 1, temp) == 0){   //Rednand
         if (*(u32*)(temp + 0x100) == NCSD_MAGIC) {
             *off = 1;
@@ -32,33 +32,33 @@ void getEmunandSect(u32 *off, u32 *head){
     *head = 0;
 }
 
-void getSDMMC(void *pos, Size size, uPtr *off){
+void getSDMMC(const void *pos, Size size, uPtr *off){
     //Look for struct code
     const u8 pattern[] = {0x21, 0x20, 0x18, 0x20};
-    u8 *sdmmc = memsearch(pos, pattern, size, 4) - 1;
+    uPtr sdmmc = memsearch(pos, pattern, size, 4) - 1;
 
-    *off = *(uPtr *)(sdmmc + 0x0A) + *(uPtr *)(sdmmc + 0x0E);
+    *off = *(uPtr*)(sdmmc + 0x0A) + *(uPtr*)(sdmmc + 0x0E);
 }
 
 
-void getEmuRW(void *pos, Size size, uPtr *readOff, uPtr *writeOff){
+void getEmuRW(const void *pos, Size size, uPtr *readOff, uPtr *writeOff){
     //Look for read/write code
-    unsigned char pattern[] = {0x04, 0x00, 0x0D, 0x00, 0x17, 0x00, 0x1E, 0x00, 0xC8, 0x05};
-    *writeOff = (uPtr)memsearch(pos, pattern, size, 10);
-    *readOff = (uPtr)memsearch((void *)(*writeOff - 0x1000), pattern, 0x1000, 10);
+    const u8 pattern[] = {0x04, 0x00, 0x0D, 0x00, 0x17, 0x00, 0x1E, 0x00, 0xC8, 0x05};
+    *writeOff = memsearch(pos, pattern, size, 10);
+    *readOff = memsearch((void*)(*writeOff - 0x1000), pattern, 0x1000, 10);
 }
 
-void getMPU(void *pos, Size size, uPtr *off){
+void getMPU(const void *pos, Size size, uPtr *off){
     //Look for MPU pattern
-    unsigned char pattern[] = {0x03, 0x00, 0x24, 0x00, 0x00};
-    *off = (uPtr)memsearch(pos, pattern, size, 5);
+    const u8 pattern[] = {0x03, 0x00, 0x24, 0x00, 0x00};
+    *off = memsearch(pos, pattern, size, 5);
 }
 
-void getEmuCode(void *pos, Size size, uPtr *off){
+void getEmuCode(const void *pos, Size size, uPtr *off){
     //Finds start of 0xFF field
-    unsigned char pattern[] = {0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF};
-    void *proc9 = memsearch(pos, "Proc", size, 4);
+    const u8 pattern[] = {0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF};
+    uPtr proc9 = memsearch(pos, "Proc", size, 4);
  
     //Looking for the last spot before Process9
-    *off = (uPtr)memsearch(pos, pattern, size - (size - (uPtr)(proc9 - pos)), 6) + 0xF + (PDN_MPCORE_CFG == 1 ? 0x100 : 0);
+    *off = memsearch(pos, pattern, size - (size - (uPtr)(proc9 - (uPtr)pos)), 6) + 0xF + (PDN_MPCORE_CFG == 1 ? 0x100 : 0);
 }
