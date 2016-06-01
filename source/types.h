@@ -14,6 +14,7 @@
 #define HID ~*(vu32*)0x10146000
 #define PDN_MPCORE_CFG *(u8*)0x10140FFC
 #define PDN_SPI_CNT *(vu32*)0x101401C0
+#define UNITINFO *(u8*)0x10010010
 
 //Common data types
 typedef uint8_t u8;

@@ -50,7 +50,7 @@ void loadFirm(void){
     //Initial setup
     firm = firmLocation;
     section = firm->section;
-    k9loader(firmLocation + section[2].offset);
+    keyInit(firmLocation + section[2].offset);
     
     //Set MPU for emu/thread code region
     getMPU(firmLocation, firmSize, &mpuOffset);
@@ -106,7 +106,7 @@ void loadEmu(void){
 }
 
 //Patches arm9 things on Sys/Emu
-void patchFirm(){ 
+void patchFirm(){    
     //Disable signature checks
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     memcpy((void*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));

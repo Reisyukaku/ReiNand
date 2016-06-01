@@ -235,49 +235,31 @@ void xor(u8 *dest, const u8 *data1, const u8 *data2, Size size){
 ****************************************************************/
 
 const u8 memeKey[0x10] = {
-    0x52, 0x65, 0x69, 0x20, 0x69, 0x73, 0x20, 0x62, 0x65, 0x73, 0x74, 0x20, 0x67, 0x69, 0x72, 0x6C
+    0x52, 0x65, 0x69, 0x20, 0x69, 0x73, 0x20, 0x62, 
+    0x65, 0x73, 0x74, 0x20, 0x67, 0x69, 0x72, 0x6C
 };
 
-//Emulates the K9L process and then some
-void k9loader(void *armHdr){
+//Sets up keys
+void keyInit(void *armHdr){
     //If old3ds, skip n3ds parts
     if(PDN_MPCORE_CFG == 1) goto Legacy;
+    if(UNITINFO != 0) return;
     
     //Nand key#2 (0x12C10)
     u8 key2[0x10] = {
         0x10, 0x5A, 0xE8, 0x5A, 0x4A, 0x21, 0x78, 0x53, 0x0B, 0x06, 0xFA, 0x1A, 0x5E, 0x2A, 0x5C, 0xBC
     };
-  
-    //Firm keys
-    u8 keyX[0x10];
-    u8 keyY[0x10];
-    u8 CTR[0x10];
-    u32 slot = 0x16;
     
-    //Setup keys needed for arm9bin decryption
+    //Set 0x11 to key2 for the misc keys
     xor(key2, key2, memeKey, 0x10);
-    memcpy((u8*)keyY, (void*)((uPtr)armHdr+0x10), 0x10);
-    memcpy((u8*)CTR, (void*)((uPtr)armHdr+0x20), 0x10);
-    u32 size = atoi((void*)((uPtr)armHdr+0x30));
-
-    //Set 0x11 to key2 for the arm9bin and misc keys
     aes_setkey(0x11, (u8*)key2, AES_KEYNORMAL, AES_INPUT_BE | AES_INPUT_NORMAL);
     aes_use_keyslot(0x11);
     
-    //Set 0x16 keyX, keyY and CTR
-    aes((u8*)keyX, (void*)((uPtr)armHdr+0x60), 1, NULL, AES_ECB_DECRYPT_MODE, 0);
-    aes_setkey(slot, (u8*)keyX, AES_KEYX, AES_INPUT_BE | AES_INPUT_NORMAL);
-    aes_setkey(slot, (u8*)keyY, AES_KEYY, AES_INPUT_BE | AES_INPUT_NORMAL);
-    aes_setiv((u8*)CTR, AES_INPUT_BE | AES_INPUT_NORMAL);
-    aes_use_keyslot(slot);
-    
-    //Decrypt arm9bin
-    aes((void*)(armHdr+0x800), (void*)(armHdr+0x800), size/AES_BLOCK_SIZE, CTR, AES_CTR_MODE, AES_INPUT_BE | AES_INPUT_NORMAL);
-    
     //Set keys 0x19..0x1F keyXs
     u8* decKey = (void*)((uPtr)armHdr+0x89824);
+    memset(decKey, 0, 0x10);
     aes_use_keyslot(0x11);
-    for(slot = 0x19; slot < 0x20; slot++) {
+    u8 slot; for(slot = 0x19; slot < 0x20; slot++) {
         aes(decKey, (void*)((uPtr)armHdr+0x89814), 1, NULL, AES_ECB_DECRYPT_MODE, 0);
         aes_setkey(slot, (u8*)decKey, AES_KEYX, AES_INPUT_BE | AES_INPUT_NORMAL);
         *(u8*)((void*)((uPtr)armHdr+0x89814+0xF)) += 1;
