@@ -52,7 +52,7 @@ $(dir_out)/arm9loaderhax.bin: $(dir_build)/main.bin
 	@cp -av $< $@
 
 .PHONY: $(dir_out)/$(name).dat
-$(dir_out)/$(name).dat: $(dir_build)/main.bin $(dir_out)/rei/ $(dir_out)/rei/patches
+$(dir_out)/$(name).dat: $(dir_build)/main.bin $(dir_out)/rei/ $(dir_out)/rei/patches/patches.dat
 	@$(MAKE) $(FLAGS) -C $(dir_cakehax) launcher
 	dd if=$(dir_build)/main.bin of=$@ bs=512 seek=144
     
@@ -66,8 +66,9 @@ $(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin
 	@mkdir -p "$(dir_out)/rei"
 	@cp -av $^ $@
 
-$(dir_out)/rei/patches: $(dir_data)/patches/
-	@cp -av $^ $@
+$(dir_out)/rei/patches/patches.dat: $(wildcard data/patches/*.rnp)
+	@mkdir -p "$(dir_out)/rei/patches/"
+	cat $^ > $@
 
 $(dir_out)/rei/loader.cxi: $(dir_loader)
 	@$(MAKE) $(FLAGS) -C $(dir_loader)
