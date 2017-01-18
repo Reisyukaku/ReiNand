@@ -23,6 +23,8 @@ Copy everything in 'out' folder to SD root and run!
 
 * Sig checks disabled
 
+* Reboot patch
+
 * Firm partition update protection
 
 * Ability to modify splash screen
@@ -50,6 +52,8 @@ Copy everything in 'out' folder to SD root and run!
  Normmatt for sdmmc.c and generally being helpful!
  
  AuroraWright for being helpful with better sysmod injection and stuff!
+ 
+ Roxas75 for the reboot code.
     
  Me (Rei) for coding everything else.
  
