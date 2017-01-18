@@ -21,9 +21,14 @@ u8 clearScreen(void){
 void loadSplash(void){
     //If FB was clear, and the image exists, display
     if(clearScreen()){
-        fopen("/rei/splash.bin", "rb");
-        fread(fb->top_left, 1, fsize());
-        fclose();
+        if(fopen("/rei/splashTop.bin", "rb")){
+            fread(fb->top_left, 1, fsize());
+            fclose();
+        }
+        if(fopen("/rei/splashBot.bin", "rb")){
+            fread(fb->bottom, 1, fsize());
+            fclose();
+        }
         u64 i = 0xFFFFFF; while(--i) __asm("mov r0, r0"); //Less Ghetto sleep func
     }
 }

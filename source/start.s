@@ -20,8 +20,6 @@ _start:
     ldr r6, =0x1FF00027	@ 1FF00000 1M
     ldr r7, =0x1800002D	@ 18000000 8M
     mov r10, #0x25
-    mov r11, #0x25
-    mov r12, #0x25
     mcr p15, 0, r0, c6, c0, 0
     mcr p15, 0, r1, c6, c1, 0
     mcr p15, 0, r2, c6, c2, 0
@@ -31,8 +29,8 @@ _start:
     mcr p15, 0, r6, c6, c6, 0
     mcr p15, 0, r7, c6, c7, 0
     mcr p15, 0, r10, c3, c0, 0	@ Write bufferable 0, 2, 5
-    mcr p15, 0, r11, c2, c0, 0	@ Data cacheable 0, 2, 5
-    mcr p15, 0, r12, c2, c0, 1	@ Inst cacheable 0, 2, 5
+    mcr p15, 0, r10, c2, c0, 0	@ Data cacheable 0, 2, 5
+    mcr p15, 0, r10, c2, c0, 1	@ Inst cacheable 0, 2, 5
 
     @ Enable caches
     mrc p15, 0, r4, c1, c0, 0  @ read control register
@@ -52,7 +50,12 @@ _start:
 	mov r1, #0x340
 	str r1, [r0]
 
-    bl main
+    @ Patch and run CFW
+    bl mountSD
+    bl loadSplash
+    bl loadFirm
+    bl patchFirm
+    bl launchFirm
 
 .die:
     b .die

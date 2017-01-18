@@ -62,7 +62,7 @@ $(dir_out)/3ds/$(name):
 	@mv $(dir_out)/$(name).3dsx $@
 	@mv $(dir_out)/$(name).smdh $@
     
-$(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splash.bin
+$(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splashTop.bin $(dir_data)/splashBot.bin
 	@mkdir -p "$(dir_out)/rei"
 	@cp -av $^ $@
 
@@ -74,12 +74,13 @@ $(dir_out)/rei/loader.cxi: $(dir_loader)
 	@$(MAKE) $(FLAGS) -C $(dir_loader)
 	@mv $(dir_loader)/loader.cxi $(dir_out)/rei
     
-$(dir_build)/payloads.h: $(dir_payload)/emunand.s
+$(dir_build)/payloads.h: $(dir_payload)/emunand.s $(dir_payload)/reboot.s
 	@mkdir $(dir_build)
-	@armips $<
-	@armips $(word 1,$^)
+	@armips $(word 1, $^)
+	@armips $(word 2, $^)
 	@mv emunand.bin $(dir_build)
-	@bin2c -o $@ -n emunand $(dir_build)/emunand.bin
+	@mv reboot.bin $(dir_build)
+	@bin2c -o $@ -n emunand $(dir_build)/emunand.bin -n reboot $(dir_build)/reboot.bin
 
 $(dir_build)/main.bin: $(dir_build)/main.elf
 	$(OC) -S -O binary $< $@

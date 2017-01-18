@@ -16,7 +16,6 @@
 //Firm vars
 const void *firmLocation = (void*)0x24000000;
 firmHeader *firm = NULL;
-firmSectionHeader *section = NULL;
 Size firmSize = 0;
 
 //Emu vars
@@ -35,36 +34,39 @@ uPtr sigPatchOffset1 = 0,
      threadOffset2 = 0,
      threadCodeOffset = 0,
      firmWriteOffset = 0,
-     ldrOffset = 0;
+     ldrOffset = 0,
+     rebootOffset = 0, 
+     fOpenOffset = 0;
 
 //Load firm into FCRAM
 void loadFirm(void){
     //Read FIRM from SD card and write to FCRAM
     fopen("/rei/firmware.bin", "rb");
     firmSize = fsize()/2;
-    if(PDN_MPCORE_CFG == 1) fseek(firmSize);
+    if(PDN_MPCORE_CFG == 1) fseek(firmSize); //If O3DS, load 2nd firm
     fread(firmLocation, 1, firmSize);
     fclose();
     decryptFirm(firmLocation, firmSize);
     
     //Initial setup
     firm = firmLocation;
-    section = firm->section;
-    keyInit(firmLocation + section[2].offset);
+    keyInit(firmLocation + firm->section[2].offset);
     
-    //Set MPU for emu/thread code region
+    //Set MPU for emu code region
     getMPU(firmLocation, firmSize, &mpuOffset);
-    memcpy((u8*)mpuOffset, mpu, sizeof(mpu));
+    *(u32*)mpuOffset = PERMS(RW_RW, N_N, SIZE_256MB);        //Area4:0x10100000
+    *(u32*)(mpuOffset+0x18) = PERMS(RW_RW, R_R, SIZE_256MB); //Area6:0x20000000
+    *(u32*)(mpuOffset+0x24) = PERMS(RW_RW, R_R, SIZE_32KB);  //Area7:0x8020000
     
     //Inject custom loader
     fopen("/rei/loader.cxi", "rb");
-    u8 *arm11SysMods = (u8 *)firm + section[0].offset;
+    u8 *arm11SysMods = (u8*)firm + firm->section[0].offset;
     Size ldrInFirmSize;
     Size ldrFileSize = fsize();
     getLoader(arm11SysMods, &ldrInFirmSize, &ldrOffset);
-    memcpy(section[0].address, arm11SysMods, ldrOffset);
-    fread(section[0].address + ldrOffset, 1, ldrFileSize);
-    memcpy(section[0].address + ldrOffset + ldrFileSize, arm11SysMods + ldrOffset + ldrInFirmSize, section[0].size - (ldrOffset + ldrInFirmSize));
+    memcpy(firm->section[0].address, arm11SysMods, ldrOffset);
+    fread(firm->section[0].address + ldrOffset, 1, ldrFileSize);
+    memcpy(firm->section[0].address + ldrOffset + ldrFileSize, arm11SysMods + ldrOffset + ldrInFirmSize, firm->section[0].size - (ldrOffset + ldrInFirmSize));
     fclose();
     
     //Dont boot emu if AGB game was just played, or if START was held.
@@ -85,7 +87,7 @@ void loadSys(void){
 }
 
 //Nand redirection
-void loadEmu(void){ 
+void loadEmu(void){
     //Read emunand code from SD
     getEmuCode(firmLocation, firmSize, &emuCodeOffset);
     memcpy((void*)emuCodeOffset, emunand, emunand_size);
@@ -111,12 +113,23 @@ void patchFirm(){
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     memcpy((void*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
     memcpy((void*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
+    
+    //Apply Reboot Patch on Firm. Add kernel check 
+    getReboot(firmLocation, firmSize, &rebootOffset);
+    memcpy((void*)rebootOffset, reboot, reboot_size);
+    uPtr *FOpenPos = (uPtr*)memsearch(rebootOffset, "OPEN", reboot_size, 4);
+    getFOpen(firmLocation, firmSize, &fOpenOffset);
+    *FOpenPos = fOpenOffset;
+    if(fopen("/rei/rebootFirmware.bin", "wb")){
+        fwrite(firmLocation, 1, firmSize);
+        fclose();
+    }
 }
 
 void launchFirm(void){
     //Copy firm partitions to respective memory locations
-    memcpy(section[1].address, firmLocation + section[1].offset, section[1].size);
-    memcpy(section[2].address, firmLocation + section[2].offset, section[2].size);
+    memcpy(firm->section[1].address, firmLocation + firm->section[1].offset, firm->section[1].size);
+    memcpy(firm->section[2].address, firmLocation + firm->section[2].offset, firm->section[2].size);
     
     //Run ARM11 screen stuff
     vu32 *arm11 = (vu32*)0x1FFFFFF8;

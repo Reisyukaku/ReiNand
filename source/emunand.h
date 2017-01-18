@@ -16,5 +16,4 @@ void getSDMMC(const void *pos, Size size, uPtr *off);
 void getEmuRW(const void *pos, Size size, uPtr *readOff, uPtr *writeOff);
 void getMPU(const void *pos, Size size, uPtr *off);
 void getEmuCode(const void *pos, Size size, uPtr *off);
-
 #endif

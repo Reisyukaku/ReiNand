@@ -50,8 +50,8 @@ void getEmuRW(const void *pos, Size size, uPtr *readOff, uPtr *writeOff){
 
 void getMPU(const void *pos, Size size, uPtr *off){
     //Look for MPU pattern
-    const u8 pattern[] = {0x03, 0x00, 0x24, 0x00, 0x00};
-    *off = memsearch(pos, pattern, size, 5);
+    const u8 pattern[] = {0x03, 0x00, 0x24, 0x00};
+    *off = memsearch(pos, pattern, size, 4);
 }
 
 void getEmuCode(const void *pos, Size size, uPtr *off){
