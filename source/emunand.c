@@ -35,7 +35,7 @@ void getEmunandSect(uPtr *off, uPtr *head){
 void getSDMMC(const void *pos, Size size, uPtr *off){
     //Look for struct code
     const u8 pattern[] = {0x21, 0x20, 0x18, 0x20};
-    uPtr sdmmc = memsearch(pos, pattern, size, 4);
+    uPtr sdmmc = memsearch(pos, pattern, size, sizeof(pattern));
 
     *off = *(uPtr*)(sdmmc + 0x09) + *(uPtr*)(sdmmc + 0x0D);
 }
@@ -44,14 +44,14 @@ void getSDMMC(const void *pos, Size size, uPtr *off){
 void getEmuRW(const void *pos, Size size, uPtr *readOff, uPtr *writeOff){
     //Look for read/write code
     const u8 pattern[] = {0x1E, 0x00, 0xC8, 0x05};
-    *writeOff = memsearch(pos, pattern, size, 4) - 6;
-    *readOff = memsearch((uPtr*)(*writeOff+1), pattern, 0x200, 4) - 6;
+    *writeOff = memsearch(pos, pattern, size, sizeof(pattern)) - 6;
+    *readOff = *writeOff - 0x40;
 }
 
 void getMPU(const void *pos, Size size, uPtr *off){
     //Look for MPU pattern
     const u8 pattern[] = {0x03, 0x00, 0x24, 0x00};
-    *off = memsearch(pos, pattern, size, 4);
+    *off = memsearch(pos, pattern, size, sizeof(pattern));
 }
 
 void getEmuCode(const void *pos, Size size, uPtr *off){
@@ -60,5 +60,5 @@ void getEmuCode(const void *pos, Size size, uPtr *off){
     uPtr proc9 = memsearch(pos, "Proc", size, 4);
  
     //Looking for the last spot before Process9
-    *off = memsearch(pos, pattern, size - (size - (uPtr)(proc9 - (uPtr)pos)), 6) + 0xF + (PDN_MPCORE_CFG == 1 ? 0x100 : 0);
+    *off = memsearch(pos, pattern, size - (size - (uPtr)(proc9 - (uPtr)pos)), sizeof(pattern)) + 0xF + (PDN_MPCORE_CFG == 1 ? 0x100 : 0);
 }

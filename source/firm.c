@@ -82,7 +82,7 @@ void loadSys(void){
     //Disable firm partition update if a9lh is installed
     if(!PDN_SPI_CNT){
         getFirmWrite(firmLocation, firmSize, &firmWriteOffset);
-        memcpy((u8*)firmWriteOffset, fwPatch, 4);
+        *(u32*)firmWriteOffset = 0x46C02000;
     }
 }
 
@@ -112,8 +112,8 @@ void loadEmu(void){
 void patchFirm(){    
     //Disable signature checks
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
-    memcpy((void*)sigPatchOffset1, sigPatch1, sizeof(sigPatch1));
-    memcpy((void*)sigPatchOffset2, sigPatch2, sizeof(sigPatch2));
+    *(u16*)sigPatchOffset1 = 0x2000;
+    *(u32*)sigPatchOffset2 = 0x47702000;
     
     //Apply Reboot Patch on Firm. Add kernel check 
     getReboot(firmLocation, firmSize, &rebootOffset);
