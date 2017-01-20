@@ -12,7 +12,6 @@
 /**************************************************
 *                   Patches
 **************************************************/      
-const u8 nandRedir[0x08];
 const u8 sigPatch1[2];
 const u8 sigPatch2[4];
 const u16 fwPatch[2];

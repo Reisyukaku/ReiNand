@@ -35,17 +35,17 @@ void getEmunandSect(uPtr *off, uPtr *head){
 void getSDMMC(const void *pos, Size size, uPtr *off){
     //Look for struct code
     const u8 pattern[] = {0x21, 0x20, 0x18, 0x20};
-    uPtr sdmmc = memsearch(pos, pattern, size, 4) - 1;
+    uPtr sdmmc = memsearch(pos, pattern, size, 4);
 
-    *off = *(uPtr*)(sdmmc + 0x0A) + *(uPtr*)(sdmmc + 0x0E);
+    *off = *(uPtr*)(sdmmc + 0x09) + *(uPtr*)(sdmmc + 0x0D);
 }
 
 
 void getEmuRW(const void *pos, Size size, uPtr *readOff, uPtr *writeOff){
     //Look for read/write code
-    const u8 pattern[] = {0x04, 0x00, 0x0D, 0x00, 0x17, 0x00, 0x1E, 0x00, 0xC8, 0x05};
-    *writeOff = memsearch(pos, pattern, size, 10);
-    *readOff = memsearch((void*)(*writeOff - 0x1000), pattern, 0x1000, 10);
+    const u8 pattern[] = {0x1E, 0x00, 0xC8, 0x05};
+    *writeOff = memsearch(pos, pattern, size, 4) - 6;
+    *readOff = memsearch((uPtr*)(*writeOff+1), pattern, 0x200, 4) - 6;
 }
 
 void getMPU(const void *pos, Size size, uPtr *off){

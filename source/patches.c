@@ -11,9 +11,6 @@
 *                   Patches
 **************************************************/
 
-//Branch to emunand func
-const u8 nandRedir[0x08] = {0x00, 0x4C, 0xA0, 0x47, 0xC0, 0xA5, 0x01, 0x08};
-
 // Sig checks
 const u8 sigPatch1[2] = {0x00, 0x20};
 const u8 sigPatch2[4] = {0x00, 0x20, 0x70, 0x47};

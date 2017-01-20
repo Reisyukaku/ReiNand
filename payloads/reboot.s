@@ -1,5 +1,5 @@
 .nds
-.create "reboot.bin", 0
+.create "build/reboot.bin", 0
 
 byteswritten equ 0x2000E000
 externalFirm equ 0x2000A000

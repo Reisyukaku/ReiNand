@@ -78,8 +78,6 @@ $(dir_build)/payloads.h: $(dir_payload)/emunand.s $(dir_payload)/reboot.s
 	@mkdir $(dir_build)
 	@armips $(word 1, $^)
 	@armips $(word 2, $^)
-	@mv emunand.bin $(dir_build)
-	@mv reboot.bin $(dir_build)
 	@bin2c -o $@ -n emunand $(dir_build)/emunand.bin -n reboot $(dir_build)/reboot.bin
 
 $(dir_build)/main.bin: $(dir_build)/main.elf

@@ -91,6 +91,7 @@ void loadEmu(void){
     //Read emunand code from SD
     getEmuCode(firmLocation, firmSize, &emuCodeOffset);
     memcpy((void*)emuCodeOffset, emunand, emunand_size);
+    u32 branchAddr = (u32)((uPtr)emuCodeOffset - (uPtr)firmLocation - firm->section[2].offset + firm->section[2].address);
     
     //Setup Emunand code
     uPtr *pos_sdmmc = (uPtr*)memsearch((void*)emuCodeOffset, "SDMC", emunand_size, 4);
@@ -101,10 +102,10 @@ void loadEmu(void){
     *pos_sdmmc = sdmmcOffset;
     *pos_offset = emuOffset;
     *pos_header = emuHeader;
+    *(u32*)emuRead = *(u32*)emuWrite = 0x47A04C00;
     
     //Add Emunand hooks
-    memcpy((void*)emuRead, nandRedir, sizeof(nandRedir));
-    memcpy((void*)emuWrite, nandRedir, sizeof(nandRedir));
+    *(u32*)(emuRead+4) = *(u32*)(emuWrite+4) = branchAddr;
 }
 
 //Patches arm9 things on Sys/Emu
