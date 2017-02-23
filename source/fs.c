@@ -57,9 +57,3 @@ Size fread(const void *buffer, Size elementSize, Size elementCnt){
     if (br == elementSize*elementCnt) br /= elementSize; else return 0;
     return br;
 }
-
-void DebugWrite(const char *filename, u8 *buffer, Size size){
-    fopen(filename, "wb");
-    fwrite(buffer, 1, size);
-    fclose();
-}

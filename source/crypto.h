@@ -59,7 +59,7 @@
 #define AES_KEYY		2
 
 //NAND/FIRM stuff
-void keyInit(void *armHdr);
+void k9loader(void *armHdr);
 void decryptFirm(void *firm, Size firmSize);
 
 #endif /*__CRYPTO_H*/

@@ -50,24 +50,27 @@ void loadFirm(void){
     
     //Initial setup
     firm = firmLocation;
-    keyInit(firmLocation + firm->section[2].offset);
+    k9loader(firmLocation + firm->section[2].offset);
     
     //Set MPU for emu code region
     getMPU(firmLocation, firmSize, &mpuOffset);
     *(u32*)mpuOffset = PERMS(RW_RW, N_N, SIZE_256MB);        //Area4:0x10100000
-    *(u32*)(mpuOffset+0x18) = PERMS(RW_RW, R_R, SIZE_256MB); //Area6:0x20000000
+    *(u32*)(mpuOffset+0x18) = PERMS(RW_RW, R_R, SIZE_128KB); //Area6:0x8000000
     *(u32*)(mpuOffset+0x24) = PERMS(RW_RW, R_R, SIZE_32KB);  //Area7:0x8020000
     
-    //Inject custom loader
-    fopen("/rei/loader.cxi", "rb");
-    u8 *arm11SysMods = (u8*)firm + firm->section[0].offset;
-    Size ldrInFirmSize;
-    Size ldrFileSize = fsize();
-    getLoader(arm11SysMods, &ldrInFirmSize, &ldrOffset);
-    memcpy(firm->section[0].address, arm11SysMods, ldrOffset);
-    fread(firm->section[0].address + ldrOffset, 1, ldrFileSize);
-    memcpy(firm->section[0].address + ldrOffset + ldrFileSize, arm11SysMods + ldrOffset + ldrInFirmSize, firm->section[0].size - (ldrOffset + ldrInFirmSize));
-    fclose();
+    //Inject custom loader if exists
+    if(fopen("/rei/loader.cxi", "rb")){
+        u8 *arm11SysMods = (u8*)firm + firm->section[0].offset;
+        Size ldrInFirmSize;
+        Size ldrFileSize = fsize();
+        getLoader(arm11SysMods, &ldrInFirmSize, &ldrOffset);
+        memcpy(firm->section[0].address, arm11SysMods, ldrOffset);
+        fread(firm->section[0].address + ldrOffset, 1, ldrFileSize);
+        memcpy(firm->section[0].address + ldrOffset + ldrFileSize, arm11SysMods + ldrOffset + ldrInFirmSize, firm->section[0].size - (ldrOffset + ldrInFirmSize));
+        fclose();
+    }else{
+        memcpy(firm->section[0].address, firmLocation + firm->section[0].offset, firm->section[0].size);
+    }
     
     //Dont boot emu if AGB game was just played, or if START was held.
     getEmunandSect(&emuOffset, &emuHeader);
@@ -114,17 +117,13 @@ void patchFirm(){
     getSigChecks(firmLocation, firmSize, &sigPatchOffset1, &sigPatchOffset2);
     *(u16*)sigPatchOffset1 = 0x2000;
     *(u32*)sigPatchOffset2 = 0x47702000;
-    
+
     //Apply Reboot Patch on Firm. Add kernel check 
     getReboot(firmLocation, firmSize, &rebootOffset);
     memcpy((void*)rebootOffset, reboot, reboot_size);
     uPtr *FOpenPos = (uPtr*)memsearch(rebootOffset, "OPEN", reboot_size, 4);
     getFOpen(firmLocation, firmSize, &fOpenOffset);
     *FOpenPos = fOpenOffset;
-    if(fopen("/rei/rebootFirmware.bin", "wb")){
-        fwrite(firmLocation, 1, firmSize);
-        fclose();
-    }
 }
 
 void launchFirm(void){

@@ -34,9 +34,9 @@ void getFOpen(void *pos, u32 size, uPtr *off){
 
 void getReboot(void *pos, u32 size, uPtr *off){
     //Look for FIRM reboot code
-    unsigned char pattern[] = {0xDE, 0x1F, 0x8D, 0xE2};
+    unsigned char pattern[] = {0xE2, 0x20, 0x20, 0x90};
 
-    *off = memsearch(pos, pattern, size, sizeof(pattern)) - 0x10;
+    *off = memsearch(pos, pattern, size, sizeof(pattern)) - 0x13;
 }
 
 void getLoader(const void *pos, Size *ldrSize, uPtr *ldrOff){

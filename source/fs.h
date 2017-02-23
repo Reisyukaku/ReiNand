@@ -18,6 +18,5 @@ u8 eof(void);
 Size fsize(void);
 Size fwrite(const void *buffer, Size elementSize, Size elementCnt);
 Size fread(const void *buffer, Size elementSize, Size elementCnt);
-void DebugWrite(const char *filename, u8 *buffer, Size size);
 
 #endif
