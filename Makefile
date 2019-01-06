@@ -25,7 +25,7 @@ objects_cfw = $(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \
 			  $(call rwildcard, $(dir_source), *.s *.c)))
 
 .PHONY: all
-all: launcher a9lh loader ninjhax
+all: launcher a9lh loader sighax
 
 .PHONY: a9lh
 a9lh: $(dir_out)/arm9loaderhax.bin
@@ -35,9 +35,6 @@ launcher: $(dir_out)/$(name).dat
 
 .PHONY: loader
 loader: $(dir_out)/rei/loader.cxi
-
-.PHONY: ninjhax
-ninjhax: $(dir_out)/3ds/$(name)
 
 .PHONY: clean
 clean:
@@ -55,12 +52,6 @@ $(dir_out)/arm9loaderhax.bin: $(dir_build)/main.bin
 $(dir_out)/$(name).dat: $(dir_build)/main.bin $(dir_out)/rei/ $(dir_out)/rei/patches/patches.dat
 	@$(MAKE) $(FLAGS) -C $(dir_cakehax) launcher
 	dd if=$(dir_build)/main.bin of=$@ bs=512 seek=144
-    
-$(dir_out)/3ds/$(name):
-	@mkdir -p "$(dir_out)/3ds/$(name)"
-	@$(MAKE) $(FLAGS) -C $(dir_cakebrah)
-	@mv $(dir_out)/$(name).3dsx $@
-	@mv $(dir_out)/$(name).smdh $@
     
 $(dir_out)/rei/: $(dir_data)/firmware.bin $(dir_data)/splashTop.bin $(dir_data)/splashBot.bin
 	@mkdir -p "$(dir_out)/rei"

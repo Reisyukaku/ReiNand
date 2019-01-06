@@ -226,6 +226,49 @@ void aes(void* dst, const void* src, u32 blockCount, void* iv, u32 mode, u32 ivM
 	}
 }
 
+static void sha_wait_idle()
+{
+    while(*REG_SHA_CNT & 1);
+}
+
+void sha(void *res, const void *src, u32 size, u32 mode)
+{
+    sha_wait_idle();
+    *REG_SHA_CNT = mode | SHA_CNT_OUTPUT_ENDIAN | SHA_NORMAL_ROUND;
+
+    const u32 *src32 = (const u32 *)src;
+    int i;
+    while(size >= 0x40)
+    {
+        sha_wait_idle();
+        for(i = 0; i < 4; ++i)
+        {
+            *REG_SHA_INFIFO = *src32++;
+            *REG_SHA_INFIFO = *src32++;
+            *REG_SHA_INFIFO = *src32++;
+            *REG_SHA_INFIFO = *src32++;
+        }
+
+        size -= 0x40;
+    }
+
+    sha_wait_idle();
+    memcpy((void *)REG_SHA_INFIFO, src32, size);
+
+    *REG_SHA_CNT = (*REG_SHA_CNT & ~SHA_NORMAL_ROUND) | SHA_FINAL_ROUND;
+
+    while(*REG_SHA_CNT & SHA_FINAL_ROUND);
+    sha_wait_idle();
+
+    u32 hashSize = SHA_256_HASH_SIZE;
+    if(mode == SHA_224_MODE)
+        hashSize = SHA_224_HASH_SIZE;
+    else if(mode == SHA_1_MODE)
+        hashSize = SHA_1_HASH_SIZE;
+
+    memcpy(res, (void *)REG_SHA_HASH, hashSize);
+}
+
 void xor(u8 *dest, const u8 *data1, const u8 *data2, Size size){
     u32 i; for(i = 0; i < size; i++) *((u8*)dest+i) = *((u8*)data1+i) ^ *((u8*)data2+i);
 }
@@ -233,6 +276,25 @@ void xor(u8 *dest, const u8 *data1, const u8 *data2, Size size){
 /****************************************************************
 *                   Nand/FIRM Crypto stuff
 ****************************************************************/
+u32 decryptExeFs(Cxi *cxi){
+    if(memcmp(cxi->ncch.magic, "NCCH", 4) != 0)
+        return 0;
+    
+    u8 *exeFsOffset = (u8*)cxi + 6 * 0x200;
+    u32 exeFsSize = (cxi->ncch.exeFsSize - 1) * 0x200;
+    ALIGNED(4) u8 ncchCtr[AES_BLOCK_SIZE] = {0};
+    
+    for(u32 i = 0; i < 8; i++)
+        ncchCtr[7 - i] = cxi->ncch.partitionId[i];
+    
+    ncchCtr[8] = 2;
+    aes_setkey(0x2C, cxi, AES_KEYY, AES_INPUT_BE | AES_INPUT_NORMAL);
+    aes_advctr(ncchCtr, 0x200 / AES_BLOCK_SIZE, AES_INPUT_BE | AES_INPUT_NORMAL);
+    aes_use_keyslot(0x2C);
+    aes(cxi, exeFsOffset, exeFsSize / AES_BLOCK_SIZE, ncchCtr, AES_CTR_MODE, AES_INPUT_BE | AES_INPUT_NORMAL);
+    
+    return memcmp(cxi, "FIRM", 4) == 0 ? exeFsSize : 0;
+}
 
 const u8 memeKey[0x10] = {
     0x52, 0x65, 0x69, 0x20, 0x69, 0x73, 0x20, 0x62, 0x65, 0x73, 0x74, 0x20, 0x67, 0x69, 0x72, 0x6C

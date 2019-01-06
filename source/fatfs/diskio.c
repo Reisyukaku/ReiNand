@@ -9,7 +9,46 @@
 
 #include "diskio.h"		/* FatFs lower layer API */
 #include "sdmmc/sdmmc.h"
+#include "../crypto.h"
+#include <string.h>
 
+/* Definitions of physical drive number for each media */
+#define SDCARD        0
+#define CTRNAND       1
+
+__attribute__((aligned(4))) static u8 nandCTR[AES_BLOCK_SIZE];
+static u8 nandKeySlot;
+static u32 fatStart;
+
+void nandInit(void){
+	__attribute__((aligned(4))) u8 CID[AES_BLOCK_SIZE];
+	__attribute__((aligned(4))) u8 SHA_Sum[SHA_256_HASH_SIZE];
+
+	sdmmc_get_cid(1, (u32*)CID);
+	sha(SHA_Sum, CID, AES_BLOCK_SIZE, SHA_256_MODE);
+	memcpy(nandCTR, SHA_Sum, sizeof(nandCTR));
+
+	if (ISN3DS){
+		fatStart = 0x5CAD7;
+		nandKeySlot = 0x05;
+	} else {
+		fatStart = 0x5CAE5;
+        nandKeySlot = 0x04;
+	}
+}
+
+u32 nandRead(u32 sectorNum, u32 sectorCount, u8* dest){
+	__attribute__((aligned(4))) u8 tempCTR[AES_BLOCK_SIZE];
+	memcpy(tempCTR, nandCTR, AES_BLOCK_SIZE);
+	aes_advctr(tempCTR, ((sectorNum + fatStart) * 0x200) / AES_BLOCK_SIZE, AES_INPUT_BE | AES_INPUT_NORMAL);
+
+	u32 result = sdmmc_nand_readsectors(sectorNum + fatStart, sectorCount, dest);
+
+	aes_use_keyslot(nandKeySlot);
+	aes(dest, dest, (sectorCount * 0x200) / AES_BLOCK_SIZE, tempCTR, AES_CTR_MODE, AES_INPUT_BE | AES_INPUT_NORMAL);
+
+	return result;
+}
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -30,12 +69,26 @@ DSTATUS disk_status (
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_initialize (
-	__attribute__((unused))
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	sdmmc_sdcard_init();
-	return RES_OK;
+        DSTATUS ret;
+        static u32 sdmmcInitResult = 4;
+
+        if(sdmmcInitResult == 4) sdmmcInitResult = sdmmc_sdcard_init();
+
+        if(pdrv == CTRNAND)
+        {
+            if(!(sdmmcInitResult & 1))
+            {
+                nandInit();
+                ret = 0;
+            }
+            else ret = STA_NOINIT;
+        }
+        else ret = (!(sdmmcInitResult & 2)) ? 0 : STA_NOINIT;
+
+	return ret;
 }
 
 
@@ -45,18 +98,14 @@ DSTATUS disk_initialize (
 /*-----------------------------------------------------------------------*/
 
 DRESULT disk_read (
-	__attribute__((unused))
 	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
 	BYTE *buff,		/* Data buffer to store read data */
 	DWORD sector,	/* Sector address in LBA */
 	UINT count		/* Number of sectors to read */
 )
 {
-	if (sdmmc_sdcard_readsectors(sector, count, buff)) {
-		return RES_PARERR;
-	}
-
-	return RES_OK;
+        return ((pdrv == SDCARD && !sdmmc_sdcard_readsectors(sector, count, buff)) ||
+                (pdrv == CTRNAND && !nandRead(sector, count, buff))) ? RES_OK : RES_PARERR;
 }
 
 
@@ -67,18 +116,18 @@ DRESULT disk_read (
 
 #if _USE_WRITE
 DRESULT disk_write (
-	__attribute__((unused))
 	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
-	const BYTE *buff,	/* Data to be written */
+	const BYTE *buff,       	/* Data to be written */
 	DWORD sector,		/* Sector address in LBA */
 	UINT count			/* Number of sectors to write */
 )
 {
-	if (sdmmc_sdcard_writesectors(sector, count, (BYTE *)buff)) {
-		return RES_PARERR;
-	}
+	(void)pdrv;
+	(void)buff;
+	(void)sector;
+	(void)count;
 
-	return RES_OK;
+    return ((pdrv == SDCARD && !sdmmc_sdcard_writesectors(sector, count, buff))) ? RES_OK : RES_PARERR;
 }
 #endif
 

@@ -18,6 +18,10 @@ const void *firmLocation = (void*)0x24000000;
 firmHeader *firm = NULL;
 Size firmSize = 0;
 
+// FIRM Paths
+#define o3ds_native_firm    "1:/title/00040138/00000002/content/"
+#define n3ds_native_firm    "1:/title/00040138/20000002/content/"
+
 //Emu vars
 uPtr emuOffset = 0,
      emuHeader = 0,
@@ -40,10 +44,11 @@ uPtr sigPatchOffset1 = 0,
 
 //Load firm into FCRAM
 void loadFirm(void){
+    //TODO: Load firm from nand instead.. 
     //Read FIRM from SD card and write to FCRAM
     fopen("/rei/firmware.bin", "rb");
     firmSize = fsize()/2;
-    if(PDN_MPCORE_CFG == 1) fseek(firmSize); //If O3DS, load 2nd firm
+    if(ISN3DS) fseek(firmSize); //If O3DS, load 2nd firm
     fread(firmLocation, 1, firmSize);
     fclose();
     decryptFirm(firmLocation, firmSize);

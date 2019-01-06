@@ -52,6 +52,7 @@ _start:
 
     @ Patch and run CFW
     bl mountSD
+    bl mountNand
     bl loadSplash
     bl loadFirm
     bl patchFirm

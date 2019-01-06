@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 //Memory regions
 #define CFG_BOOTENV *(vu32*)0x10010000
@@ -16,6 +17,12 @@
 #define PDN_MPCORE_CFG *(u8*)0x10140FFC
 #define PDN_SPI_CNT *(vu32*)0x101401C0
 #define UNITINFO *(u8*)0x10010010
+
+// Values
+#define ISN3DS           (PDN_MPCORE_CFG == 7)
+#define ISA9LH           (!PDN_SPI_CNT)
+#define ISSIGHAX         (ISA9LH && CFG_SYSPROT9)
+#define ISSYSNAND        0 // temp value.
 
 //MPU setting macro (Kernel9)
 #define PERMS(dataAccess,instrAccess,regionSize) ((regionSize<<17)|(instrAccess<<8)|dataAccess)
@@ -34,7 +41,7 @@
 #define RW_RW 3
 #define R_R 6
 
-
+#define ALIGNED(x)           __attribute__((aligned(x)))
 
 //Common data types
 typedef uint8_t u8;

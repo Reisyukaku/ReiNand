@@ -11,6 +11,8 @@
 
 u8 mountSD(void);
 u8 unmountSD(void);
+void mountNand(void);
+void unmountNand(void);
 u8 fopen(const void *filename, const char *mode);
 void fclose(void);
 void fseek(u32 offset);

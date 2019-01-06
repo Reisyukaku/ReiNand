@@ -8,8 +8,8 @@
 #include "fs.h"
 #include "fatfs/ff.h"
 
-static FATFS fs;
-static FILE fp; //Had to make a static file since fatfs hated my file pointers.
+static FATFS fs, nandfs;
+static FIL fp; //Had to make a static file since fatfs hated my file pointers.
 
 u8 mountSD(void){
     if (f_mount(&fs, "0:", 1)) return 1;
@@ -19,6 +19,16 @@ u8 mountSD(void){
 u8 unmountSD(void){
     if (f_mount(NULL, "0:", 1)) return 1;
     return 0;
+}
+
+void mountNand(void){
+    if (f_mount(&nandfs, "1:", 1) != FR_OK)
+        return;
+}
+
+void unmountNand(void){
+    if(f_mount(NULL, "1:", 1) != FR_OK)
+        return;
 }
 
 u8 fopen(const void *filename, const char *mode){
